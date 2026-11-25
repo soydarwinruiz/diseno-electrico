@@ -24,6 +24,16 @@ No requiere internet ni instalación.
 - **Revisión RETIE / NTC 2050**, cuadro de cargas, balance de fases y lista de materiales (exportable a Excel).
 - Guardar/abrir proyectos, exportar imagen, imprimir / PDF.
 
+### Facilidad de uso
+- Interruptores y tomacorrientes **se pegan al muro** y miran hacia el espacio (Alt: ubicación libre).
+- **Clic derecho** para menú contextual: rotar, duplicar, asignar circuito, cablear…
+- **Ver un solo circuito** (selector *Ver:* o 👁 en la pestaña Tablero).
+- **Cablear todo lo que falta** con un clic, espacio por espacio.
+- Paleta con **búsqueda** y **arrastrar y soltar**; lista de **primeros pasos**.
+- Ctrl+C / Ctrl+V / Ctrl+D, flechas para mover fino, Ctrl+Z / Ctrl+Y.
+
+![Ver un solo circuito](docs/ver-circuito.png)
+
 ## Estructura
 
 | Carpeta | Contenido |
