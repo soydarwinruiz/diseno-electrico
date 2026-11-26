@@ -34,6 +34,12 @@ No requiere internet ni instalación.
 
 ![Modelos de tablero](docs/tablero-modelos.png)
 
+### Diseño automático y práctica
+- **Tomas automáticas** (regla de 1,80 m, GFCI en zonas húmedas) y **luz con interruptor junto a la puerta** en un clic; diseño automático de toda la casa.
+- **Tubería** calculada desde los cables, con diámetro según la NTC 2050.
+- **🔧 Multímetro**, **¿por qué no prende?** (diagnóstico paso a paso) y **🎯 retos** de práctica revisados por el programa.
+- Dimmer, sensor de movimiento, fotocelda, extractor, timbre/citófono de 12 V, tomas de TV y datos.
+
 ### Proyectos y planos para entregar
 - **📂 Mis proyectos**: varios proyectos guardados en el equipo (abrir, duplicar, eliminar).
 - **PDF en 3 hojas** con rótulo, convenciones, **diagrama unifilar**, cuadro de cargas con **caída de tensión** y lista de materiales.

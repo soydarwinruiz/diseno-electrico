@@ -2,6 +2,17 @@
 
 Todas las versiones se pueden descargar en la sección **Releases** del repositorio.
 
+## v1.8.0 — Diseño automático, tubería, multímetro y retos
+- **🔌 Tomas automáticas**: por espacio o para toda la casa, según la regla de 1,80 m, sin tapar puertas y con GFCI en baños, cocina y zonas húmedas; quedan conectadas al tablero.
+- **💡 Luz con interruptor en un clic**: al poner una luz en un espacio sin interruptor, el programa ubica el interruptor junto a la puerta y lo conecta (con dos puertas usa conmutables). Ctrl+Z quita solo el interruptor.
+- **✨ Diseño automático de toda la casa** desde Propiedades del proyecto.
+- **Tubería (conduit)** calculada a partir de los cables: diámetro (½", ¾", 1"…) según la ocupación de la NTC 2050, número de cables por tramo, metros, tubos de 3 m y curvas. Se ve en el plano con la casilla «tubería».
+- **🔧 Multímetro** (tecla U): mida el voltaje entre dos bornes (120 V, 240 V, 0 V, 12 V) con explicación.
+- **🔍 ¿Por qué no prende?**: clic derecho en una luz o toma durante la simulación para ver el diagnóstico paso a paso (falta el neutro, el retorno no llega, el taco está disparado, el interruptor está apagado…).
+- **🎯 Retos de práctica**: 6 ejercicios que el programa revisa probando todas las posiciones de los interruptores.
+- **Aparatos nuevos**: dimmer, sensor de movimiento, fotocelda, extractor de baño, transformador 120/12 V con timbre/citófono de 12 V, toma de TV y toma de datos. Nuevas guías de sensor y timbre de 12 V.
+- Menú **📁 Archivo** que agrupa nuevo, abrir, guardar, exportar e imprimir.
+
 ## v1.7.0 — Proyectos, planos profesionales y herramientas
 - **📂 Mis proyectos**: cada proyecto se guarda por separado en el equipo. «Nuevo», «Casa de ejemplo» y «Abrir archivo» ya no reemplazan el trabajo actual; se puede abrir, duplicar y eliminar proyectos.
 - **Impresión / PDF profesional en 3 hojas** con **rótulo** (proyecto, dirección, propietario, diseñó, matrícula, fecha, hoja y firma) y **convenciones** de aparatos y colores de cable.
