@@ -15,6 +15,24 @@ No requiere internet ni instalación.
 
 ## Funciones
 
+### Plano fácil (pestaña 🏠 Plano)
+- Elija el tipo de espacio y arrastre un rectángulo: **los muros y las cotas se dibujan solos** (15 cm exteriores, 12 cm interiores).
+- **Arrastre un muro** para mover la pared: los espacios vecinos se ajustan y los aparatos pegados al muro lo acompañan.
+- Puertas (sencilla, doble, corrediza) y ventanas que **se insertan en el muro** y abren hacia el lado elegido.
+- **Muebles** básicos (camas, sofá, comedor, sanitario, lavamanos, ducha, estufa, nevera, lavadora, mesón).
+- **Plantillas**: apartaestudio, casa de 2 alcobas, casa de 3 alcobas.
+
+![Plano fácil](docs/plano-facil.png)
+
+### Modelos de tablero y de tacos
+- Tablero **metálico gris de empotrar**, **blanco de sobreponer** o **modular riel DIN**, en varias capacidades; avisa si no caben los tacos.
+- Tacos **sencillos**, **dobles tándem (2 en 1 espacio)**, **bipolares**, **diferenciales** y **bipolares diferenciales**.
+- En el plano, todas las salidas del tablero bajan por una **bornera inferior** rotulada (C1, C2… N, T).
+
+![Modelos de tablero](docs/tablero-modelos.png)
+
+### Diseño eléctrico
+
 - **Plano base:** muros, espacios (alcoba, sala, cocina, baño, lavadero…), puertas, ventanas e imagen de fondo del plano.
 - **Aparatos realistas:** bombillo, plafón LED, aplique, ventilador, interruptor sencillo/doble/triple, conmutable (3 vías), cruce (4 vías), interruptor + tomacorriente, tomacorriente doble, GFCI, 240 V, ducha eléctrica, timbre, empalme, varilla de puesta a tierra.
 - **Cables de colores y calibres AWG**, conectados a los bornes de cada aparato (fase, neutro, tierra).
