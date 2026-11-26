@@ -16,7 +16,8 @@ button,select,input{font:inherit}
 #menubar{grid-column:1/4;display:flex;align-items:center;gap:4px;padding:5px 8px;background:#12355f;color:#fff}
 #menubar .brand{font-weight:700;font-size:15px;margin-right:14px;white-space:nowrap}
 #menubar .brand small{font-weight:400;opacity:.75;font-size:11px;margin-left:6px}
-#menubar button{background:transparent;color:#fff;border:1px solid transparent;border-radius:4px;padding:4px 10px;cursor:pointer}
+#menubar button{background:transparent;color:#fff;border:1px solid transparent;border-radius:4px;padding:4px 8px;cursor:pointer;white-space:nowrap}
+@media (max-width:1500px){#menubar .brand small{display:none}#menubar button{padding:4px 6px}#menubar input{width:150px}}
 #menubar button:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25)}
 #menubar input{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:4px;padding:4px 8px;width:220px}
 #toolbar{grid-column:1/4;display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:5px 8px;background:#fff;border-bottom:1px solid var(--ln)}
@@ -75,6 +76,20 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 #toast.err{background:#b71c1c}
 #modal{position:fixed;inset:0;background:rgba(15,25,40,.45);display:none;align-items:center;justify-content:center;z-index:40}
 #modal.show{display:flex}
+#modal .box.learn{max-width:1100px;width:94vw;height:86vh;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.lh{display:flex;align-items:center;gap:8px;padding:12px 16px;background:#12355f;color:#fff}.lh b{font-size:16px;flex:1}
+.lh button{border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer}.lh button.on{background:#fff;color:#12355f;font-weight:600}
+.lb{flex:1;display:flex;min-height:0}
+.gl{width:260px;overflow:auto;border-right:1px solid #e3e8ee;background:#f8fafc;padding:8px}
+.gl .gi{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;cursor:pointer;line-height:1.25}.gl .gi:hover{background:#eef4fc}.gl .gi.on{background:#dceafc}
+.gl .gi span.ic{font-size:20px}.gl small{color:#64748b}
+.gc{flex:1;overflow:auto;padding:14px 20px;line-height:1.5}
+.gc h2{margin:0 0 4px}.gc .diag{border:1px solid #dde3ea;border-radius:8px;background:#fbfcfd;margin:10px 0;text-align:center}.gc .diag svg{width:100%;max-height:330px}
+.gc ol li{margin:4px 0}.gc .cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cchip{display:inline-block;width:11px;height:11px;border-radius:50%;border:1px solid #888;vertical-align:-1px;margin:0 2px}
+.term{display:inline-block;background:#fff3cd;border:1px solid #f0d58a;border-radius:4px;padding:0 4px;font-weight:700;font-family:Consolas,monospace;font-size:12px}
+.gls{padding:4px 0 10px}.gls input{width:100%;padding:7px 10px;border:1px solid #c9d1db;border-radius:6px}
+.gw{padding:8px 0;border-bottom:1px solid #eef1f4}.gw b{color:#12355f}
 #modal .box{background:#fff;border-radius:10px;max-width:760px;max-height:85vh;overflow:auto;padding:18px 22px;box-shadow:0 12px 40px rgba(0,0,0,.3);line-height:1.45}
 #modal h2{margin-top:0}
 .chip{display:inline-block;padding:0 5px;border-radius:4px;color:#fff;font-size:11px;font-weight:600}
@@ -192,7 +207,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 
 <div id="app">
  <div id="menubar">
-  <div class="brand">⚡ Diseño Eléctrico Residencial<small>RETIE · NTC 2050</small></div>
+  <div class="brand">⚡ Diseño Eléctrico Residencial <span id="appVer" style="font-size:11px;font-weight:600;background:rgba(255,255,255,.18);border-radius:8px;padding:1px 6px"></span><small>RETIE · NTC 2050</small></div>
   <button data-m="new">Nuevo</button>
   <button data-m="open">Abrir…</button>
   <button data-m="save">Guardar</button>
@@ -200,6 +215,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
   <button data-m="png">Exportar imagen</button>
   <button data-m="print">Imprimir / PDF</button>
   <button data-m="sample">Casa de ejemplo</button>
+  <button data-m="learn" style="background:#f9a825;color:#1b1b1b;font-weight:600">📖 Guías y glosario</button>
   <button data-m="help">Ayuda</button>
   <input id="projName" title="Nombre del proyecto">
   <input id="fileIn" type="file" accept=".json,.elec,application/json" style="display:none">
@@ -257,6 +273,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 
 <script>
 "use strict";
+const APP_VERSION='1.6.0';
 // =====================================================================
 //  Utilidades
 // =====================================================================
@@ -388,8 +405,9 @@ const DRAW={
 // Tablero de distribución (dibujo dinámico según los circuitos)
 function panelGeom(cs){
  const cols=[]; cs.forEach((c,i)=>{cols.push({c,i,p:'a'}); if(c.poles==2) cols.push({c,i,p:'b'})});
- const TS=12, nC=cols.length, W=Math.max(100,(nC+2)*TS+30), H=80, x0=-W/2+14+TS/2;
- return {cols,TS,W,H,nC,tx:j=>x0+j*TS+(j>=nC?8:0)};
+ const real=cs===state.circuits, L=real?panelLayout():null, nE=L?Math.max(0,Math.min(42,Math.floor(L.total-L.used))):0;
+ const TS=12, nC=cols.length, W=Math.max(100,(nC+nE+2)*TS+30), H=80, x0=-W/2+14+TS/2, iN=nC+nE, iT=nC+nE+1;
+ return {cols,TS,W,H,nC,nE,iN,iT,L,tx:j=>x0+j*TS+(j>=iN?8:0)};
 }
 DRAW.tablero=(d,on,cs)=>{
  cs=cs||state.circuits; const g=panelGeom(cs),{W,H,TS,nC}=g, sty=PNL().style;
@@ -397,7 +415,7 @@ DRAW.tablero=(d,on,cs)=>{
  let s=`<rect x="${-W/2+2}" y="${-H/2+2.5}" width="${W}" height="${H}" rx="3" fill="rgba(0,0,0,.2)"/>`+
   `<rect x="${-W/2}" y="${-H/2}" width="${W}" height="${H}" rx="3" fill="${box}" stroke="#5f6770" stroke-width=".8"/>`+
   `<rect x="${-W/2+4}" y="${-H/2+4}" width="${W-8}" height="${H-8}" rx="2" fill="${inner}" stroke="${sty==='metal'?'none':'#c9ced3'}" stroke-width=".5"/>`+
-  tiny(0,-H/2+10.5,'TABLERO · '+(sty==='riel'?'RIEL DIN':PNL().slots+' ESPACIOS'),tc,4.4);
+  tiny(0,-H/2+10.5,'TABLERO · '+PNL().slots+(sty==='riel'?' MÓDULOS':' ESPACIOS')+(g.L?(g.L.overflow.size?' · ¡NO CABEN!':` · ${g.nE} libre${g.nE===1?'':'s'}`):''),g.L&&g.L.overflow.size?'#ff5252':tc,4.4);
  const yb=-H/2+15, bh=24, white=sty==='riel';
  g.cols.forEach((r,j)=>{const c=r.c,x=g.tx(j),st=c.tripped?'trip':c.on?'on':'off';
   s+=`<g data-hit="brk" data-id="${d.id}" data-c="${c.id}" style="cursor:pointer"><rect x="${x-4.6}" y="${yb}" width="9.2" height="${bh}" rx="1.2" fill="${white?'#fafafa':'#1d1d1d'}" stroke="${white?'#9e9e9e':'#000'}" stroke-width=".4"/>`+
@@ -406,13 +424,15 @@ DRAW.tablero=(d,on,cs)=>{
   s+=`<line x1="${x}" y1="${yb+bh}" x2="${x}" y2="${H/2-14}" stroke="#c9a227" stroke-width="1.3"/>`;
   if(r.p==='a'){const cw=c.poles==2?TS+9:9.5;s+=`<rect x="${x-4.75}" y="${-H/2+42}" width="${cw}" height="7.5" rx="1.5" fill="${CCOL[r.i%CCOL.length]}"/>`+tiny(x-4.75+cw/2,-H/2+47.6,'C'+(r.i+1),'#fff',4)}
  });
- const xn=g.tx(nC), xt=g.tx(nC+1);
+ for(let j=nC;j<nC+g.nE;j++){const x=g.tx(j);s+=`<rect x="${x-4.6}" y="${yb}" width="9.2" height="${bh}" rx="1.2" fill="${sty==='metal'?'#5a636c':'#ecece6'}" stroke="${sty==='metal'?'#3a4148':'#c9c9c2'}" stroke-width=".4"/><rect x="${x-1}" y="${yb+bh/2-4}" width="2" height="8" rx="1" fill="${sty==='metal'?'#78828c':'#d6d6cf'}"/>`}
+ if(g.nE) s+=tiny(g.tx(nC)+(g.nE-1)*TS/2,-H/2+47.6,g.nE>2?'libres':'',sty==='metal'?'#90a4ae':'#9e9e96',3.6);
+ const xn=g.tx(g.iN), xt=g.tx(g.iT);
  s+=`<rect x="${xn-3.5}" y="${yb+2}" width="7" height="${bh+8}" rx="1" fill="#cfd4da" stroke="#8a929b" stroke-width=".4"/>`+tiny(xn,yb-1.5,'N',tc,4.2)+
   `<rect x="${xt-3.5}" y="${yb+2}" width="7" height="${bh+8}" rx="1" fill="#7cb342" stroke="#33691e" stroke-width=".4"/>`+tiny(xt,yb-1.5,'T',tc,4.2)+
   `<line x1="${xn}" y1="${yb+bh+10}" x2="${xn}" y2="${H/2-14}" stroke="#cfd4da" stroke-width="1.3"/><line x1="${xt}" y1="${yb+bh+10}" x2="${xt}" y2="${H/2-14}" stroke="#7cb342" stroke-width="1.3"/>`;
  const x1=g.tx(0)-6, x2=xt+6;
  s+=`<rect x="${x1}" y="${H/2-15}" width="${x2-x1}" height="9" rx="1.5" fill="#e3e6ea" stroke="#8a929b" stroke-width=".5"/>`+tiny(-W/2+7.5,H/2-8.6,'▼','#90a4ae',4.5);
- for(let j=0;j<nC+2;j++){const x=g.tx(j),t=j<nC?'f':j===nC?'n':'t';s+=`<circle cx="${x}" cy="${H/2-10.5}" r="2.2" fill="${TFILL[t]}" stroke="${TSTROKE[t]}" stroke-width=".4"/><line x1="${x}" y1="${H/2-8}" x2="${x}" y2="${H/2+6}" stroke="${t==='f'?'#c9a227':t==='n'?'#b0b6bd':'#43a047'}" stroke-width="1.3"/>`}
+ for(const j of [...Array(nC).keys(),g.iN,g.iT]){const x=g.tx(j),t=j<nC?'f':j===g.iN?'n':'t';s+=`<circle cx="${x}" cy="${H/2-10.5}" r="2.2" fill="${TFILL[t]}" stroke="${TSTROKE[t]}" stroke-width=".4"/><line x1="${x}" y1="${H/2-8}" x2="${x}" y2="${H/2+6}" stroke="${t==='f'?'#c9a227':t==='n'?'#b0b6bd':'#43a047'}" stroke-width="1.3"/>`}
  return s;
 };
 
@@ -512,7 +532,7 @@ function termsOf(d){
  if(d.type==='tablero'){
   const g=panelGeom(state.circuits);
   const out=g.cols.map((r,j)=>({...T('C'+r.c.id+r.p,g.tx(j),g.H/2+7,'f'),lb:''}));
-  out.push({...T('N',g.tx(g.nC),g.H/2+7,'n'),lb:'N'},{...T('T',g.tx(g.nC+1),g.H/2+7,'t'),lb:'T'}); return out;
+  out.push({...T('N',g.tx(g.iN),g.H/2+7,'n'),lb:'N'},{...T('T',g.tx(g.iT),g.H/2+7,'t'),lb:'T'}); return out;
  }
  return c.terms||[];
 }
@@ -646,8 +666,22 @@ function termsSVG(d,o){
  });
  return s;
 }
+const TERM_INFO={
+ COM:'Común: entrada del interruptor. Aquí llega la FASE desde el tablero (en el segundo conmutable, desde aquí sale el retorno al bombillo).',
+ S:'Salida o retorno: cuando la tecla está encendida, por aquí sale la fase hacia el bombillo.',
+ S1:'Salida 1: retorno de la tecla 1 (izquierda) hacia su grupo de luces.', S2:'Salida 2: retorno de la tecla 2 hacia su grupo de luces.', S3:'Salida 3: retorno de la tecla 3.',
+ V1:'Viajero 1: cable que va al otro conmutable (o al cruce). Por V1 o por V2 viaja la fase según la posición de la tecla.', V2:'Viajero 2: segundo cable viajero hacia el otro conmutable o el cruce.',
+ A1:'Entrada de viajero 1 del cruce (viene del conmutable anterior).', A2:'Entrada de viajero 2 del cruce.', B1:'Salida de viajero 1 del cruce (va al siguiente interruptor).', B2:'Salida de viajero 2 del cruce.',
+ F:'Fase: en un bombillo aquí llega el retorno del interruptor; en un tomacorriente, la fase del circuito (cable negro o rojo).',
+ N:'Neutro: conductor de regreso de la corriente (cable blanco). Va directo al tablero, nunca pasa por el interruptor.',
+ T:'Tierra de protección (cable verde o desnudo): protege a las personas si un aparato tiene una falla.',
+ L:'Línea: fase que alimenta el aparato combinado; el tomacorriente queda siempre con energía y el interruptor la toma de aquí.',
+ F1:'Fase 1 de una carga de 240 V (sale de un polo del taco bipolar).', F2:'Fase 2 de una carga de 240 V (sale del otro polo).',
+ J:'Punto de empalme: todos los cables que llegan aquí quedan unidos.'
+};
+const termInfo=(d,k)=>d.type==='tablero'?(/^C/.test(k)?`Salida del taco ${cName(k.slice(1,-1))}: de aquí sale la fase del circuito.`:TERM_INFO[k]):(TERM_INFO[k]||'');
 const TDESC={f:'fase / retorno (tornillo de latón)',n:'neutro (tornillo plateado)',t:'tierra (tornillo verde)',c:'común (tornillo negro)',j:'empalme'};
-function termLabel(d,t){const n=wiresAt(d.id,t.k).length;const nm=d.type==='tablero'&&/^C/.test(t.k)?'Breaker '+cName(t.k.slice(1,-1))+(t.k.endsWith('b')?' polo 2':''):'Borne '+t.k;return `${nm} – ${TDESC[t.t]} · ${n} cable${n===1?'':'s'}`}
+function termLabel(d,t){const n=wiresAt(d.id,t.k).length;const nm=d.type==='tablero'&&/^C/.test(t.k)?'Breaker '+cName(t.k.slice(1,-1))+(t.k.endsWith('b')?' polo 2':''):'Borne '+t.k;return `${nm} – ${TDESC[t.t]} · ${n} cable${n===1?'':'s'}`+(termInfo(d,t.k)?`\n${termInfo(d,t.k)}`:'')}
 function devLabel(d){const C=CAT[d.type];if(C.arch)return C.n;const c=d.c&&circ(d.c);return C.n+(d.label?' «'+d.label+'»':'')+(c?' · '+cName(c.id)+' '+c.name:(isElec(d)?' · sin circuito':''))}
 function tagSVG(d){
  if(!d.c||!isElec(d)) return '';
@@ -1058,7 +1092,7 @@ function wireClick(H,ps,p){
   const color=draftColor(tType(db,end.t));
   const cid=(da.c&&circ(da.c)?da.c:null)||(db.c&&circ(db.c)?db.c:null);
   const w={id:uid(),a:wireDraft.a,b:end,pts:wireDraft.pts,color,gauge:wireDraft.gauge||(cid?circ(cid).gauge:settings.gauge),c:cid};
-  if(!w.pts.length) w.pts=route(tpos(da,w.a.t),tpos(db,end.t),0);
+  if(!w.pts.length) w.pts=wireRoute(w.a,end,0);
   state.wires.push(w); wireDraft=null; sel=new Set(['w:'+w.id]); changed(); return;
  }
  if(wireDraft){const a=dev(wireDraft.a.d);const P=wireDraft.pts;const last=P.length?{x:P[P.length-1][0],y:P[P.length-1][1]}:tpos(a,wireDraft.a.t);
@@ -1130,7 +1164,7 @@ window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='A
 // =====================================================================
 //  Acciones de edición
 // =====================================================================
-function changed(undoable){syncFases();saveLocal();render();renderSide()}
+function changed(undoable){if(SANDBOX)return;syncFases();saveLocal();render();renderSide()}
 function delSel(){
  if(!sel.size) return; pushUndo();
  sel.forEach(k=>{if(k[0]!=='d')return;const d=dev(k.slice(2));if(!d||d.type!=='derivacion')return;const ws=wiresAt(d.id,'J');if(ws.length!==2)return;const [w1,w2]=ws;
@@ -1202,7 +1236,7 @@ function ctxMenu(e,H,p){
   }
   const w=key[0]==='w'&&wireById(key.slice(2));
   if(w) items.push({t:'⑂ Derivar un cable desde aquí',f:()=>startBranch(w,p)});
-  if(w) items.push({t:'↳ Ruta ortogonal automática',f:()=>upd(()=>w.pts=route(tpos(dev(w.a.d),w.a.t),tpos(dev(w.b.d),w.b.t),OFF[w.role]||0))},{t:'／ Línea recta',f:()=>upd(()=>w.pts=[])});
+  if(w) items.push({t:'↳ Ruta ortogonal automática',f:()=>upd(()=>w.pts=wireRoute(w.a,w.b,OFF[w.role]||0))},{t:'／ Línea recta',f:()=>upd(()=>w.pts=[])});
   const r=key[0]==='r'&&state.rooms.find(x=>x.id===key.slice(2));
   if(r) items.push({t:'🧱 Muros automáticos',f:()=>{sideTab='prop';renderSide();upd(()=>r.autoWalls=true)}},{t:'⚙ Cablear este espacio',f:()=>autoWireAll(r)});
   items.push({sep:1},{t:'🗑 Eliminar',k:'Supr',f:delSel});
@@ -1236,6 +1270,12 @@ function autoWireAll(onlyRoom){
 function rotSel(){
  const ds=[...sel].filter(k=>k[0]==='d').map(k=>dev(k.slice(2))).filter(Boolean); if(!ds.length) return;
  pushUndo(); ds.forEach(d=>d.r=((d.r||0)+90)%360); changed();
+}
+function wireRoute(a,b,off){
+ // los cables que salen de la bornera del tablero primero bajan y luego siguen
+ const da=dev(a.d),db=dev(b.d),A=tpos(da,a.t),B=tpos(db,b.t), pa=da.type==='tablero', pb=db.type==='tablero';
+ if(pa||pb){const P=pa?A:B,Q=pa?B:A,pd=pa?da:db,key=pa?a.t:b.t,ti=Math.max(0,termsOf(pd).findIndex(t=>t.k===key)),y=P.y+12+ti*4*scaleOf(pd);let pts=Math.abs(P.x-Q.x)<1&&Q.y>P.y?[]:[[P.x,y],[Q.x,y]];if(!pa)pts.reverse();return pts}
+ return route(A,B,off);
 }
 function route(A,B,off){
  if(Math.abs(A.x-B.x)<1||Math.abs(A.y-B.y)<1) return [];
@@ -1280,7 +1320,7 @@ const OFF={fase:-7.5,neutro:0,tierra:7.5,retorno:-3.75,viajero:3.75};
 function addWire(a,b,role,c,pole){
  const A=tpos(dev(a.d),a.t),B=tpos(dev(b.d),b.t);
  let gauge=c.gauge; if(role==='tierra') gauge=c.breaker<=15?'14':c.breaker<=20?'12':'10';
- const w={id:uid(),a,b,pts:route(A,B,OFF[role]||0),color:colorFor(role,c,pole),gauge,role,c:c.id,pole:pole||'a'};
+ const w={id:uid(),a,b,pts:wireRoute(a,b,OFF[role]||0),color:colorFor(role,c,pole),gauge,role,c:c.id,pole:pole||'a'};
  state.wires.push(w); return w;
 }
 function feed(c,role,pole,target){
@@ -1346,7 +1386,7 @@ function autoConnect(ids,silent){
  // ---------- timbre ----------
  // (el timbre es una carga tipo "luz" con pulsador sencillo: se resuelve arriba)
  // ---------- puesta a tierra ----------
- ds.filter(d=>d.type==='varilla').forEach(v=>{if(!wiresAt(v.id,'T').length){const A=tpos(panel,'T'),B=tpos(v,'T');state.wires.push({id:uid(),a:{d:panel.id,t:'T'},b:{d:v.id,t:'T'},pts:route(A,B,0),color:'desnudo',gauge:'8',role:'spt'})}});
+ ds.filter(d=>d.type==='varilla').forEach(v=>{if(!wiresAt(v.id,'T').length){const A=tpos(panel,'T'),B=tpos(v,'T');state.wires.push({id:uid(),a:{d:panel.id,t:'T'},b:{d:v.id,t:'T'},pts:wireRoute({d:panel.id,t:'T'},{d:v.id,t:'T'},0),color:'desnudo',gauge:'8',role:'spt'})}});
  changed();
  if(!silent) toast('Conexión automática terminada.'+(msgs.length?' '+msgs.join(' '):'')+' Pruebe con ▶ Simular.');
  return true;
@@ -1553,11 +1593,12 @@ function propDevice(B,d){
  if(C.h) h+=row('Altura de montaje',esc(C.h));
  if(C.box) h+=row('Caja',esc(C.box));
  const r=roomOf(d); if(r) h+=row('Ubicado en',esc(r.name)+' ('+ROOMT[r.type]+')');
- if(C.sw) h+=row('Estado de teclas',d.st.map((v,i)=>`<label style="margin-right:8px"><input type="checkbox" data-st="${i}" ${v?'checked':''}> ${C.sw>1?'T'+(i+1):'cerrado'}</label>`).join(''));
+ if(C.sw) h+=row('Estado de teclas',`<div style="display:flex;gap:12px;flex-wrap:wrap">`+d.st.map((v,i)=>`<label style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap"><input type="checkbox" style="width:auto" data-st="${i}" ${v?'checked':''}> ${C.sw>1?'Tecla '+(i+1):'Encendido'}</label>`).join('')+`</div>`);
  h+=`<div class="btnrow"><button class="btn" id="dRot">⟳ Rotar 90°</button><button class="btn" id="dDup">⧉ Duplicar</button>${d.c&&circ(d.c)?`<button class="btn" id="dView">👁 Ver solo ${cName(d.c)}</button>`:''}<button class="btn danger" id="dDel">Eliminar</button></div>`;
- h+=`<h4>Bornes</h4><table class="t"><tr><th>Borne</th><th>Tipo</th><th>Cables</th></tr>`+termsOf(d).map(t=>{const n=wiresAt(d.id,t.k).length;return `<tr><td>${d.type==='tablero'&&/^C/.test(t.k)?'Breaker '+cName(t.k.slice(1,-1))+(t.k.endsWith('b')?' (polo 2)':''):t.k}</td><td>${{f:'Fase / retorno (latón)',n:'Neutro (plateado)',t:'Tierra (verde)',c:'Común (negro)',j:'Empalme'}[t.t]}</td><td class="n">${n}</td></tr>`}).join('')+`</table>`;
+ h+=`<h4>Bornes <small style="font-weight:400;color:var(--mu)">(qué significa cada uno)</small></h4><table class="t"><tr><th>Borne</th><th>Tipo</th><th>Cables</th></tr>`+termsOf(d).map(t=>{const n=wiresAt(d.id,t.k).length,inf=termInfo(d,t.k);return (inf&&d.type!=='tablero'?`<tr><td colspan="3" style="background:#f8fafc;color:#475569;font-size:11px;border-bottom:0"><b>${t.k}:</b> ${esc(inf)}</td></tr>`:'')+`<tr><td>${d.type==='tablero'&&/^C/.test(t.k)?'Breaker '+cName(t.k.slice(1,-1))+(t.k.endsWith('b')?' (polo 2)':''):t.k}</td><td>${{f:'Fase / retorno (latón)',n:'Neutro (plateado)',t:'Tierra (verde)',c:'Común (negro)',j:'Empalme'}[t.t]}</td><td class="n">${n}</td></tr>`}).join('')+`</table>`;
  if(C.note) h+=`<div class="note">${C.note}</div>`;
- B.innerHTML=h;
+ const gid=GUIDE_FOR[d.type]; if(gid) h+=`<div class="btnrow"><button class="btn pri" id="dGuide">📖 Ver guía: ${esc(GUIDES.find(g=>g.id===gid).t)}</button></div>`;
+ B.innerHTML=h; if($('#dGuide')) $('#dGuide').onclick=()=>openLearn('guias',gid);
  $('#dL').onchange=e=>upd(()=>d.label=e.target.value);
  if($('#dC')) $('#dC').onchange=e=>upd(()=>d.c=e.target.value||null);
  if($('#dVA')) $('#dVA').onchange=e=>upd(()=>d.va=+e.target.value);
@@ -1580,7 +1621,7 @@ function propWire(B,w){
  B.querySelectorAll('[data-wc]').forEach(el=>el.onclick=()=>upd(()=>w.color=el.dataset.wc));
  $('#wG').onchange=e=>upd(()=>w.gauge=e.target.value);
  $('#wC').onchange=e=>upd(()=>w.c=e.target.value||null);
- $('#wR').onclick=()=>upd(()=>w.pts=route(tpos(dev(w.a.d),w.a.t),tpos(dev(w.b.d),w.b.t),OFF[w.role]||0));
+ $('#wR').onclick=()=>upd(()=>w.pts=wireRoute(w.a,w.b,OFF[w.role]||0));
  $('#wS').onclick=()=>upd(()=>w.pts=[]);
  $('#wD').onclick=delSel;
 }
@@ -1674,7 +1715,7 @@ document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{sideTab=b.da
 // =====================================================================
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
 async function saveFile(as){
- const data=JSON.stringify({...state,app:'DisenoElectrico'},null,1), name=(state.name||'proyecto').replace(/[\\/:*?"<>|]/g,'_')+'.elec.json';
+ const data=JSON.stringify({...state,app:'DisenoElectrico',appVersion:APP_VERSION},null,1), name=(state.name||'proyecto').replace(/[\\/:*?"<>|]/g,'_')+'.elec.json';
  try{
   if(window.showSaveFilePicker){
    if(!fileHandle||as) fileHandle=await showSaveFilePicker({suggestedName:name,types:[{description:'Proyecto de diseño eléctrico',accept:{'application/json':['.json']}}]});
@@ -1719,6 +1760,7 @@ function printDoc(){
  setTimeout(()=>window.print(),50);
 }
 function help(){
+ $('#modalBox').classList.remove('learn');
  $('#modalBox').innerHTML=`<h2>Guía rápida</h2>
  <ol>
  <li><b>Plano base (pestaña 🏠 Plano):</b> elija el tipo de espacio (alcoba, cocina, baño…) y arrastre un rectángulo. Los <b>muros y las medidas se dibujan solos</b>; los espacios se alinean con los vecinos. <b>Arrastre un muro</b> para mover la pared: los espacios se ajustan y los aparatos pegados a ella se mueven también. Inserte puertas, ventanas y muebles (se pegan al muro). También hay <b>plantillas</b> listas y puede cargar una imagen del plano como fondo.</li>
@@ -1730,6 +1772,7 @@ function help(){
  <li><b>Revisión:</b> la pestaña Revisión lista los incumplimientos detectados (RETIE / NTC 2050). Haga clic en uno para ubicarlo.</li>
  <li><b>Guardar / Imprimir:</b> el trabajo se guarda solo en este equipo, y con <b>Guardar</b> lo exporta a un archivo. <b>Imprimir / PDF</b> genera el plano, el cuadro de cargas y los materiales.</li>
  </ol>
+ <p style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:8px">¿No conoce un término (COM, S1, viajero, retorno, tándem…)? Abra <b>📖 Guías y glosario</b> en la barra superior: tiene guías paso a paso de las instalaciones más comunes con un botón para insertarlas en su plano y probarlas.</p>
  <h3>Atajos</h3><p>V seleccionar · M muro · H espacio · C cable · S simular · R rotar · Supr eliminar · Ctrl+Z / Ctrl+Y deshacer / rehacer · Ctrl+C / Ctrl+V copiar y pegar (donde esté el ratón) · Ctrl+D duplicar · Flechas mover fino (Shift: 50 cm) · Ctrl+S guardar · Rueda zoom · Espacio+arrastrar desplazar · Esc terminar.</p>
  <h3>Derivaciones (empalmes)</h3><p>Con <b>〰 Cable</b>, haga clic <b>sobre un cable existente</b>: se crea un empalme ⊗ y desde ahí sale un cable nuevo del mismo color y calibre (por ejemplo, del neutro principal se desprende el neutro de otra luz). También puede terminar un cable sobre otro cable, o usar clic derecho → «Derivar un cable desde aquí». Si borra una derivación que solo une dos tramos, el cable se vuelve a unir.</p>
  <h3>Simulación interactiva</h3><p>En <b>▶ Simular</b>: accione interruptores, mantenga presionado el pulsador para que suene el timbre, haga clic en los <b>tomacorrientes para conectar aparatos</b> (TV, licuadora, plancha…) y en la ducha o la estufa para encenderlas. Abra el <b>🗄 Tablero</b> (tecla T) para ver los tacos reales, el medidor de energía y la corriente de cada circuito. Si conecta demasiados aparatos, los cables se ponen naranja y el taco <b>se dispara por sobrecarga</b>. Un taco disparado se rearma bajándolo a OFF y luego subiéndolo a ON. Arrastrando un taco a otra fila cambia su fase (A o B).</p>
@@ -1739,12 +1782,184 @@ function help(){
  <b>Desde 2 sitios (conmutables):</b> fase → COM del 1.º; V1 y V2 del 1.º → V1 y V2 del 2.º (viajeros); COM del 2.º → bombillo; neutro → bombillo.<br>
  <b>Desde 3 o más sitios:</b> igual, pero los viajeros pasan por cada interruptor de cruce (A1/A2 entran, B1/B2 salen).</p>
  <p style="font-size:12px;color:#555">Herramienta de apoyo para diseño y aprendizaje. No reemplaza el criterio ni la firma de un profesional competente. Verifique siempre contra el RETIE y la NTC 2050 vigentes.</p>
+ <p style="font-size:12px;color:#555">Versión ${APP_VERSION} · <a href="https://github.com/soydarwinruiz/diseno-electrico/releases" target="_blank">ver novedades y descargas</a></p>
  <div class="btnrow"><button class="btn pri" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;
  $('#modal').classList.add('show');
 }
 $('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('show')};
 let toastT=null;
 function toast(m,err){const t=$('#toast');t.textContent=m;t.className='show'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='',err?6000:3500)}
+
+// =====================================================================
+//  Guías rápidas y glosario
+// =====================================================================
+const CC=(c)=>`<span class="cchip" style="background:${COLORS[c].stripe?`repeating-linear-gradient(45deg,${COLORS[c].c} 0 3px,${COLORS[c].stripe} 3px 6px)`:COLORS[c].c}"></span>`;
+const TM=t=>`<span class="term">${t}</span>`;
+const GUIDES=[
+ {id:'sencillo',ic:'💡',t:'Bombillo con interruptor sencillo',d:'Encender una luz desde un solo sitio',
+  why:'La instalación más común: una luz del techo controlada por un interruptor junto a la puerta.',
+  need:['1 bombillo con roseta (caja octagonal)','1 interruptor sencillo (caja 2x4" a 1,20 m)','Cable 14 AWG: fase, retorno y neutro','Circuito de iluminación de 15 A'],
+  steps:[`Del taco del circuito de iluminación lleve la ${CC('negro')} <b>fase</b> al borne ${TM('COM')} del interruptor.`,`Del borne ${TM('S')} del interruptor lleve el <b>retorno</b> ${CC('azul')} al borne ${TM('F')} del bombillo.`,`De la barra de neutro del tablero lleve el <b>neutro</b> ${CC('blanco')} directo al borne ${TM('N')} del bombillo.`,'El interruptor SIEMPRE corta la fase, nunca el neutro: así, con la luz apagada, el bombillo queda sin tensión y es seguro cambiarlo.'],
+  dev:[['int_sencillo',0,0],['bombillo',230,90]],groups:[[0,1]]},
+ {id:'doble',ic:'💡💡',t:'Dos luces con interruptor doble',d:'Dos teclas en una placa, cada una con su luz',
+  why:'Para sala-comedor o cocina: una tecla para cada zona. El interruptor doble tiene un común y dos salidas.',
+  need:['2 bombillos','1 interruptor doble','Cable 14 AWG'],
+  steps:[`La fase ${CC('negro')} llega una sola vez al ${TM('COM')} (es común a las dos teclas).`,`La tecla 1 entrega su retorno por ${TM('S1')} → ${TM('F')} del bombillo 1.`,`La tecla 2 entrega su retorno por ${TM('S2')} → ${TM('F')} del bombillo 2.`,`El neutro ${CC('blanco')} va del tablero a los ${TM('N')} de ambos bombillos (puede pasar de uno al otro o con una derivación).`,'Con interruptor triple es igual, con una tercera salida S3.'],
+  dev:[['int_doble',0,0],['bombillo',200,90],['bombillo',380,90]],groups:[[0,1,2]]},
+ {id:'conmutable',ic:'🔁',t:'Una luz desde 2 sitios (conmutables)',d:'Escaleras y pasillos: encender abajo y apagar arriba',
+  why:'Se usan DOS interruptores conmutables (de 3 vías). Cada uno tiene un común (COM, tornillo negro) y dos viajeros (V1 y V2).',
+  need:['1 bombillo','2 interruptores conmutables (3 vías)','Cable 14 AWG: fase, 2 viajeros, retorno y neutro'],
+  steps:[`La fase ${CC('negro')} del tablero llega al ${TM('COM')} del <b>primer</b> conmutable.`,`Entre los dos conmutables van dos <b>viajeros</b> ${CC('amarillo')}: ${TM('V1')}→${TM('V1')} y ${TM('V2')}→${TM('V2')}.`,`Del ${TM('COM')} del <b>segundo</b> conmutable sale el retorno ${CC('azul')} al ${TM('F')} del bombillo.`,`El neutro ${CC('blanco')} va directo al ${TM('N')} del bombillo.`,'Cómo funciona: cada conmutable pasa la fase por V1 o por V2. La luz enciende cuando ambos eligen el mismo viajero; mover cualquiera de los dos la cambia.'],
+  dev:[['int_conmutable',0,0],['bombillo',260,110],['int_conmutable',520,0]],groups:[[0,1,2]]},
+ {id:'cruce',ic:'🔀',t:'Una luz desde 3 o más sitios (cruce)',d:'Alcoba con dos mesas de noche, pasillos largos',
+  why:'Dos conmutables en los extremos y, en el medio, uno o varios interruptores de CRUCE (4 vías). El cruce recibe los viajeros por A1/A2 y los entrega por B1/B2, directos o cruzados.',
+  need:['1 bombillo','2 conmutables (extremos)','1 interruptor de cruce por cada sitio adicional','Cable 14 AWG'],
+  steps:[`Fase ${CC('negro')} → ${TM('COM')} del primer conmutable.`,`Viajeros ${CC('amarillo')} del primer conmutable (${TM('V1')}, ${TM('V2')}) → entrada del cruce (${TM('A1')}, ${TM('A2')}).`,`Salida del cruce (${TM('B1')}, ${TM('B2')}) → viajeros del último conmutable (${TM('V1')}, ${TM('V2')}). Para 4 sitios, ponga otro cruce en medio y repita.`,`${TM('COM')} del último conmutable → retorno ${CC('azul')} → ${TM('F')} del bombillo; neutro ${CC('blanco')} → ${TM('N')}.`,'Error común: poner un conmutable en el medio o un cruce en un extremo. Los extremos SIEMPRE son conmutables.'],
+  dev:[['int_conmutable',0,0],['int_cruce',300,0],['bombillo',300,170],['int_conmutable',600,0]],groups:[[0,1,2,3]]},
+ {id:'tomas',ic:'🔌',t:'Tomacorrientes con polo a tierra',d:'Varios tomas en el mismo circuito',
+  why:'Los tomas de alcobas y sala van en un circuito de 20 A con cable 12 AWG. RETIE exige tomacorrientes con polo a tierra.',
+  need:['Tomacorrientes dobles con polo a tierra (a 0,30 m del piso)','Cable 12 AWG: fase, neutro y tierra','Circuito de tomas de 20 A'],
+  steps:[`Fase ${CC('negro')} → borne de latón ${TM('F')} (ranura corta).`,`Neutro ${CC('blanco')} → borne plateado ${TM('N')} (ranura larga).`,`Tierra ${CC('verde')} → borne verde ${TM('T')} (orificio redondo).`,'Del primer toma se continúa al siguiente (en cadena) o con derivaciones dentro de la caja.','Recomendación: máximo 10 salidas por circuito y ningún punto de pared a más de 1,80 m de un toma.'],
+  dev:[['toma_doble',0,0],['toma_doble',200,0],['toma_doble',400,0]],groups:[[0,1,2]]},
+ {id:'gfci',ic:'🚿',t:'Toma GFCI en baño, cocina o exterior',d:'Protección contra descargas en zonas húmedas',
+  why:'El tomacorriente GFCI (falla a tierra) corta la energía en milésimas de segundo si detecta que la corriente se va por una persona. Es obligatorio en baños, cocinas, exteriores, garajes y lavaderos.',
+  need:['Tomacorriente GFCI (botones TEST y RESET)','Circuito de 20 A propio (baño, cocina o lavandería)','Cable 12 AWG'],
+  steps:[`Se conecta igual que un toma normal: ${TM('F')} fase, ${TM('N')} neutro, ${TM('T')} tierra.`,'En baño va a 1,10 m, cerca del lavamanos y lejos de la ducha.','Alternativa: usar un taco diferencial en el tablero que proteja todo el circuito.','Pruébelo cada mes con el botón TEST y rearme con RESET.'],
+  dev:[['toma_gfci',0,0]],groups:[[0]]},
+ {id:'combinado',ic:'🎛',t:'Interruptor + tomacorriente',d:'Un solo aparato con interruptor y toma',
+  why:'Muy usado en alcobas: el toma siempre tiene energía y el interruptor controla la luz.',
+  need:['1 interruptor + tomacorriente','1 bombillo o ventilador','Cable 12 AWG (circuito de tomas)'],
+  steps:[`Fase ${CC('negro')} → ${TM('L')}: alimenta el toma y la entrada del interruptor.`,`Neutro ${CC('blanco')} → ${TM('N')} y tierra ${CC('verde')} → ${TM('T')} del toma.`,`Del borne ${TM('S')} sale el retorno ${CC('azul')} al ${TM('F')} del bombillo; el neutro del bombillo se toma del mismo circuito.`],
+  dev:[['int_toma',0,0],['bombillo',240,110]],groups:[[0,1]]},
+ {id:'timbre',ic:'🔔',t:'Timbre con pulsador',d:'Timbre de la puerta principal',
+  why:'El pulsador es un interruptor que solo conecta mientras se mantiene presionado.',
+  need:['1 pulsador (afuera, junto a la puerta)','1 timbre de 120 V','Cable 14 AWG'],
+  steps:[`Fase ${CC('negro')} → ${TM('COM')} del pulsador.`,`${TM('S')} del pulsador → ${TM('F')} del timbre.`,`Neutro ${CC('blanco')} → ${TM('N')} del timbre.`,'En la simulación, mantenga presionado el pulsador para oírlo.'],
+  dev:[['pulsador',0,0],['timbre',230,80]],groups:[[0,1]]},
+ {id:'ducha',ic:'♨️',t:'Ducha eléctrica o estufa (240 V)',d:'Cargas grandes con taco de 2 polos',
+  why:'Las cargas de 240 V usan las DOS fases. Necesitan circuito exclusivo con taco bipolar y cable más grueso.',
+  need:['Taco bipolar: 30 A para ducha (cable 10 AWG) o 40 A para estufa (cable 8 AWG)','Cable de las dos fases + tierra','Caja con tapa para la ducha'],
+  steps:[`Polo 1 del taco ${CC('negro')} → ${TM('F1')}.`,`Polo 2 del taco ${CC('rojo')} → ${TM('F2')}.`,`Tierra ${CC('verde')} → ${TM('T')} (obligatoria: la ducha tiene agua y metal).`,'No lleva neutro. Un solo aparato por circuito.'],
+  dev:[['ducha',0,0]],groups:[[0]]},
+ {id:'tierra',ic:'⏚',t:'Puesta a tierra (varilla)',d:'Sistema de puesta a tierra obligatorio',
+  why:'RETIE exige un sistema de puesta a tierra: una varilla de cobre enterrada unida a la barra de tierra del tablero. Por ahí se descargan las fallas.',
+  need:['Varilla de cobre de 2,40 m','Conector para varilla','Cable de cobre desnudo 8 AWG (o según cálculo)'],
+  steps:['Entierre la varilla cerca del tablero (en zona verde o con caja de inspección).',`Une la varilla con cable desnudo ${CC('desnudo')} a la barra de ${TM('T')} del tablero.`,'En el tablero principal la barra de neutro y la de tierra se unen con el puente equipotencial (solo ahí).','Todos los tomacorrientes y cargas metálicas llevan su cable de tierra hasta esta barra.'],
+  dev:[['varilla',-60,120]],groups:[[0]]},
+ {id:'derivacion',ic:'⑂',t:'Derivar un cable (empalme)',d:'Sacar un ramal de un cable principal',
+  why:'Muchas veces un cable principal (por ejemplo el neutro o el retorno) alimenta varias luces. En la obra esto se hace con un empalme con conector de resorte dentro de una caja.',
+  need:['Conectores de resorte (capuchones)','Caja de paso o la caja del aparato'],
+  steps:['Elija la herramienta 〰 Cable.','Haga clic SOBRE el cable principal: aparece un punto naranja (el empalme) y arranca un cable del mismo color.','Haga clic en el borne de destino. Listo.','También: clic derecho sobre un cable → «Derivar un cable desde aquí».','Si borra un empalme que une solo dos tramos, el cable se vuelve a unir.'],
+  dev:[['int_sencillo',0,0],['bombillo',230,90],['bombillo',430,90]],groups:[[0,1]],post:'branch'}
+];
+const GUIDE_FOR={int_sencillo:'sencillo',bombillo:'sencillo',led:'sencillo',int_doble:'doble',int_triple:'doble',int_conmutable:'conmutable',int_cruce:'cruce',toma_doble:'tomas',toma_gfci:'gfci',int_toma:'combinado',pulsador:'timbre',timbre:'timbre',ducha:'ducha',toma_220:'ducha',varilla:'tierra',derivacion:'derivacion',empalme:'derivacion'};
+const GLOSARIO=[
+ ['Fase','Conductor que trae la energía desde el tablero (cables negro o rojo). Es el "vivo": tocarlo es peligroso.'],
+ ['Neutro','Conductor por el que regresa la corriente al tablero. Cable blanco (o gris). Nunca se interrumpe con un interruptor.'],
+ ['Tierra / polo a tierra','Conductor de protección (verde, verde-amarillo o desnudo). No lleva corriente normalmente; si un aparato falla, desvía la corriente y hace disparar la protección.'],
+ ['Retorno','Cable que va del interruptor al bombillo. Es fase "interrumpida": solo tiene energía cuando el interruptor está encendido.'],
+ ['Viajeros','Los dos cables que unen dos conmutables (o un conmutable con un cruce). La fase "viaja" por uno u otro según la posición de las teclas.'],
+ ['COM (común)','Borne principal de un interruptor. En un sencillo o doble recibe la fase. En un conmutable es el tornillo negro: en el primero recibe la fase y en el último entrega el retorno.'],
+ ['S, S1, S2, S3 (salidas)','Bornes de salida de un interruptor: por ahí sale el retorno hacia la luz. S1 es la tecla 1, S2 la tecla 2, S3 la tecla 3.'],
+ ['V1, V2','Bornes de los viajeros en un interruptor conmutable.'],
+ ['A1, A2, B1, B2','Bornes del interruptor de cruce: entran los viajeros por A1/A2 y salen por B1/B2.'],
+ ['F, N, T','En bombillos y tomas: F = fase (o retorno), N = neutro, T = tierra.'],
+ ['L (línea)','Fase de alimentación en el interruptor + tomacorriente.'],
+ ['F1, F2','Las dos fases de una carga de 240 V (ducha, estufa).'],
+ ['Borne','Tornillo o punto de conexión de un aparato. Latón = fase, plateado = neutro, verde = tierra, negro = común.'],
+ ['Interruptor sencillo','Una tecla que controla una luz o grupo de luces desde un solo sitio.'],
+ ['Interruptor doble / triple','Dos o tres teclas en una sola placa. Un común y una salida por tecla.'],
+ ['Conmutable (3 vías)','Interruptor que pasa la fase por uno de dos caminos (V1 o V2). En pareja controla una luz desde 2 sitios.'],
+ ['Cruce (4 vías)','Interruptor que va entre dos conmutables y cruza o deja directos los viajeros. Permite controlar desde 3 o más sitios.'],
+ ['Pulsador','Interruptor que solo conecta mientras se presiona (timbre).'],
+ ['Tomacorriente con polo a tierra','Toma de tres orificios: ranura corta (fase), ranura larga (neutro) y redondo (tierra). Obligatorio según RETIE.'],
+ ['GFCI','Tomacorriente o taco con protección contra falla a tierra: corta la energía si la corriente se escapa por una persona. Obligatorio en zonas húmedas.'],
+ ['Taco / breaker','Interruptor automático del tablero. Protege el cable de cada circuito: se dispara si hay cortocircuito o sobrecarga.'],
+ ['Totalizador','Taco principal (de 2 polos) que corta toda la casa.'],
+ ['Taco bipolar','Taco de 2 polos para cargas de 240 V (ducha, estufa). Las dos palancas van unidas.'],
+ ['Taco doble tándem','Dos tacos de un polo en el espacio de uno. Solo en tableros diseñados para recibirlos.'],
+ ['Taco diferencial','Taco con protección contra falla a tierra para todo el circuito (botón de prueba T).'],
+ ['Disparo / TRIP','Cuando el taco se baja solo por una falla. Se rearma bajándolo a OFF y subiéndolo a ON.'],
+ ['Circuito','Grupo de salidas alimentadas desde un mismo taco (por ejemplo C1 iluminación, C2 tomas).'],
+ ['Tablero de distribución','Caja donde están el totalizador y los tacos de todos los circuitos, la barra de neutro y la barra de tierra.'],
+ ['Bornera de salidas','En el plano, la tira de la parte inferior del tablero por donde salen los cables de cada circuito (C1, C2…, N, T).'],
+ ['Barra de neutro / barra de tierra','Platinas del tablero donde se conectan todos los neutros (blancos) y todas las tierras (verdes).'],
+ ['Puente equipotencial','Unión entre la barra de neutro y la de tierra. Solo se hace en el tablero principal.'],
+ ['Acometida','Cables que llegan del medidor de la empresa de energía al tablero.'],
+ ['SPT / varilla','Sistema de puesta a tierra: varilla de cobre enterrada unida a la barra de tierra.'],
+ ['Calibre AWG','Grosor del cable. Número menor = cable más grueso: 14 AWG (15 A), 12 AWG (20 A), 10 AWG (30 A), 8 AWG (40 A).'],
+ ['Amperio (A)','Cantidad de corriente. El taco se escoge según el cable: nunca un taco más grande de lo que soporta el cable.'],
+ ['Voltio (V)','Tensión. En casas de Colombia: 120 V entre fase y neutro, 240 V entre las dos fases.'],
+ ['Vatio (W) / VA','Potencia que consume un aparato. Corriente = potencia ÷ voltaje (ej.: 1200 W ÷ 120 V = 10 A).'],
+ ['Fase A / Fase B','Las dos fases del sistema 120/240 V. Los circuitos se reparten entre ellas para equilibrar la carga.'],
+ ['Balance de fases','Repartir la carga para que la fase A y la B queden parecidas (diferencia menor al 20 %).'],
+ ['Cortocircuito','Unión directa de fase con neutro o con otra fase. La corriente sube muchísimo y el taco se dispara al instante.'],
+ ['Sobrecarga','Cuando se conectan más aparatos de los que soporta el circuito. El taco se calienta y se dispara después de unos segundos.'],
+ ['Falla a tierra','Cuando la fase toca la tierra o una parte metálica. La detecta el GFCI o el diferencial.'],
+ ['Empalme / derivación','Unión de varios cables con un conector de resorte, dentro de una caja, para sacar un ramal.'],
+ ['Caja octagonal / 2x4"','Cajas donde se instalan los aparatos: octagonal para luces del techo, rectangular 2x4" para interruptores y tomas.'],
+ ['Cuadro de cargas','Tabla con cada circuito, sus salidas, la carga en VA, la corriente, el taco y el calibre.'],
+ ['RETIE','Reglamento Técnico de Instalaciones Eléctricas de Colombia: de obligatorio cumplimiento.'],
+ ['NTC 2050','Código Eléctrico Colombiano: norma técnica con las reglas de diseño e instalación.']
+];
+let SANDBOX=false;
+function guideBuild(st,g,ox,oy,forPreview){
+ // arma el ejemplo de la guía en el estado actual (st)
+ let panel=st.devices.find(d=>d.type==='tablero');
+ if(!panel){panel={id:uid(),type:'tablero',x:ox-260,y:oy-90,r:0,st:[]};st.devices.push(panel);if(!st.circuits.length)defaultCircuits()}
+ const ds=g.dev.map(([t,x,y])=>{const d={id:uid(),type:t,x:ox+x,y:oy+y,r:0,st:Array(CAT[t].sw||0).fill(false)};if(CAT[t].va!=null)d.va=CAT[t].va;st.devices.push(d);return d});
+ ds.forEach(d=>{if(isElec(d))d.c=defaultCircuit(d)});
+ if(g.id==='combinado'){const c=ensureCircuit('tomas');ds.forEach(d=>d.c=c.id)}
+ g.groups.forEach(grp=>autoConnect(grp.map(i=>ds[i].id),true));
+ if(g.post==='branch'){const b2=ds[2],ret=st.wires.find(w=>w.role==='retorno'),neu=st.wires.find(w=>w.role==='neutro'&&(w.b.d===ds[1].id||w.a.d===ds[1].id));
+  [[ret,'F'],[neu,'N']].forEach(([w,k])=>{if(!w)return;const P=wirePts(w),m=P[Math.floor(P.length/2)];const j=splitWire(w,{x:m.x,y:m.y});const nw={id:uid(),a:{d:j.id,t:'J'},b:{d:b2.id,t:k},pts:[],color:w.color,gauge:w.gauge,c:w.c,role:w.role};nw.pts=route(tpos(j,'J'),tpos(b2,k),0);st.wires.push(nw)});b2.c=ds[1].c}
+ if(forPreview) ds.forEach(d=>{if(d.st&&d.type!=='int_conmutable'&&d.type!=='int_cruce')d.st=d.st.map(()=>true);if(d.type==='ducha')d.use=true});
+ return ds;
+}
+function guidePreview(g){
+ const keep={state,undoS,redoS,RW,sel,simRes,mode}; SANDBOX=true; let out='';
+ try{
+  state=newState(); undoS=[]; redoS=[]; RW=[]; sel=new Set();
+  guideBuild(state,g,0,0,true);
+  const sim=simulate(), b=bounds();
+  out=`<svg viewBox="${b.x} ${b.y} ${b.w} ${b.h}" xmlns="http://www.w3.org/2000/svg">${worldSVG({ui:false,grid:false,labels:true,sim})}</svg>`;
+ }catch(e){out='<p>No se pudo dibujar el diagrama.</p>'}
+ finally{state=keep.state;undoS=keep.undoS;redoS=keep.redoS;RW=keep.RW;sel=keep.sel;simRes=keep.simRes;SANDBOX=false}
+ return out;
+}
+function guideInsert(g,sim){
+ pushUndo(); const n0=undoS.length;
+ const R=svg.getBoundingClientRect(), v=state.view; let ox=sn((R.width/2-v.x)/v.z), oy=sn((R.height/2-v.y)/v.z);
+ if(state.devices.length){const b=bounds(); ox=sn(b.x+b.w+320); oy=sn(b.y+150)}
+ const ds=guideBuild(state,g,ox,oy,false);
+ undoS.length=n0; sel=new Set(ds.map(d=>'d:'+d.id)); settings.ptab='elec'; buildPalette();
+ $('#modal').classList.remove('show'); changed(); fitView();
+ if(sim){setMode('sim');toast('Ejemplo listo. Haga clic en los interruptores (o tomas) para probarlo.')}
+ else toast('Ejemplo insertado en el plano. Pulse ▶ Simular para probarlo.');
+}
+let learnTab='guias', learnGuide='sencillo', learnQ='';
+function openLearn(tab,gid){if(tab)learnTab=tab;if(gid)learnGuide=gid;$('#modalBox').classList.add('learn');renderLearn();$('#modal').classList.add('show')}
+function renderLearn(){
+ let h=`<div class="lh"><b>📖 Aprender</b><button data-lt="guias" class="${learnTab==='guias'?'on':''}">Guías rápidas</button><button data-lt="glosario" class="${learnTab==='glosario'?'on':''}">Glosario</button><button id="lClose">✕</button></div><div class="lb">`;
+ if(learnTab==='guias'){
+  const g=GUIDES.find(x=>x.id===learnGuide)||GUIDES[0];
+  h+=`<div class="gl">${GUIDES.map(x=>`<div class="gi ${x.id===g.id?'on':''}" data-g="${x.id}"><span class="ic">${x.ic}</span><span><b>${esc(x.t)}</b><br><small>${esc(x.d)}</small></span></div>`).join('')}</div>`;
+  h+=`<div class="gc"><h2>${g.ic} ${esc(g.t)}</h2><p>${g.why}</p><div class="diag">${guidePreview(g)}</div>
+   <div class="cols"><div><h3>Pasos</h3><ol>${g.steps.map(x=>`<li>${x}</li>`).join('')}</ol></div><div><h3>Materiales</h3><ul>${g.need.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+   <div class="note">En el diagrama cada borne tiene su nombre. Pase el ratón sobre los bornes del plano para ver qué significa cada uno, o consulte el <a href="#" id="toGl">glosario</a>.</div></div></div>
+   <div class="btnrow"><button class="btn pri" id="gIns">➕ Insertar este ejemplo en mi plano</button><button class="btn" id="gSim">▶ Insertar y probar en simulación</button></div></div>`;
+ } else {
+  const q=norm(learnQ), list=GLOSARIO.filter(([t,d])=>!q||norm(t+' '+d).includes(q));
+  h+=`<div class="gc"><div class="gls"><input id="glq" placeholder="🔍 Buscar un término (ej.: viajero, COM, tándem)…" value="${esc(learnQ)}"></div>${list.map(([t,d])=>`<div class="gw"><b>${esc(t)}</b><br>${esc(d)}</div>`).join('')||'<p>No se encontró ese término.</p>'}</div>`;
+ }
+ $('#modalBox').innerHTML=h+'</div>';
+ document.querySelectorAll('[data-lt]').forEach(b=>b.onclick=()=>{learnTab=b.dataset.lt;renderLearn()});
+ $('#lClose').onclick=()=>{$('#modal').classList.remove('show')};
+ document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{learnGuide=b.dataset.g;renderLearn()});
+ const g=GUIDES.find(x=>x.id===learnGuide)||GUIDES[0];
+ if($('#gIns')){$('#gIns').onclick=()=>guideInsert(g,false);$('#gSim').onclick=()=>guideInsert(g,true);$('#toGl').onclick=e=>{e.preventDefault();learnTab='glosario';renderLearn()}}
+ if($('#glq')){const i=$('#glq');i.oninput=()=>{learnQ=i.value;const pos=i.selectionStart;renderLearn();const j=$('#glq');j.focus();j.setSelectionRange(pos,pos)}}
+}
 
 // =====================================================================
 //  Casa de ejemplo
@@ -2154,6 +2369,7 @@ document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
  if(m==='print') printDoc();
  if(m==='sample'){if(state.devices.length&&!confirm('¿Cargar la casa de ejemplo? El proyecto actual se reemplaza (puede deshacer con Ctrl+Z).'))return;const prev=ser();buildSample();undoS=[prev];changed();fitView();toast('Casa de ejemplo cargada. Pulse ▶ Simular y haga clic en los interruptores.')}
  if(m==='help') help();
+ if(m==='learn') openLearn('guias');
 });
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
@@ -2173,6 +2389,7 @@ $('#showDims').onchange=e=>{settings.dims=e.target.checked;render()};
 buildPalette(); buildToolbar();
 const had=loadLocal();
 if(!had){buildSample();}
+$('#appVer').textContent='v'+APP_VERSION;
 buildPalette();
 setMode('select');
 requestAnimationFrame(()=>{fitView(); if(!had) setTimeout(help,300)});

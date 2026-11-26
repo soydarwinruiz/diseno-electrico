@@ -6,7 +6,7 @@ Programa sencillo para Windows para diseñar la instalación eléctrica de una c
 
 ## Descargar y usar (Windows 10/11)
 
-1. Descargue [`dist/DisenoElectrico-Windows.zip`](dist/DisenoElectrico-Windows.zip) y descomprímalo.
+1. Descargue la última versión desde **[Releases](https://github.com/soydarwinruiz/diseno-electrico/releases/latest)** (archivo `DisenoElectrico-vX.Y.Z-Windows.zip`) y descomprímalo. Ver el [historial de versiones](CHANGELOG.md).
 2. Doble clic en **DisenoElectrico.exe** (se abre en su propia ventana usando Microsoft Edge).
    - Si aparece "Windows protegió su PC": **Más información → Ejecutar de todas formas** (el programa no tiene firma digital).
    - Alternativa: abrir `DisenoElectrico.html` en el navegador.
@@ -33,6 +33,12 @@ No requiere internet ni instalación.
 - En el plano, todas las salidas del tablero bajan por una **bornera inferior** rotulada (C1, C2… N, T).
 
 ![Modelos de tablero](docs/tablero-modelos.png)
+
+### Guías y glosario
+- **📖 Guías rápidas** de las instalaciones más comunes (sencillo, doble, 2 sitios, 3 o más sitios, tomas, GFCI, timbre, 240 V, puesta a tierra, derivaciones) con diagrama, pasos y botón para insertarlas en el plano.
+- **Glosario** con buscador: COM, S1, viajero, retorno, tándem, AWG…
+
+![Guías](docs/guias.png)
 
 ### Diseño eléctrico
 
