@@ -85,6 +85,40 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 @keyframes flow{to{stroke-dashoffset:-24}}
 .live{stroke-dasharray:4 8;animation:flow .5s linear infinite}
 #print{display:none}
+@keyframes hot{from{opacity:.15}to{opacity:.9}}
+.hot{animation:hot .45s ease-in-out infinite alternate}
+@keyframes pop{0%{opacity:.35}100%{opacity:1}}
+.pop{animation:pop .35s ease-out}
+@keyframes blink{50%{opacity:.25}}
+.blink{animation:blink .5s steps(1) infinite}
+#pview{position:absolute;right:12px;top:12px;width:760px;height:600px;max-width:calc(100% - 24px);max-height:calc(100% - 24px);background:#f4f6f8;border:1px solid #9aa5b1;border-radius:10px;box-shadow:0 14px 40px rgba(10,20,40,.35);display:none;flex-direction:column;overflow:hidden;resize:both;z-index:20;min-width:420px;min-height:320px}
+#pview.show{display:flex}
+.pvh{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;background:#12355f;color:#fff;cursor:move;user-select:none}
+.pvh b{flex:1}
+.pvh button{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;border-radius:5px;padding:2px 9px;cursor:pointer}
+.pvh button.on{background:#fff;color:#12355f}
+.pvbody{flex:1;display:flex;min-height:0}
+#pvSvgWrap{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#fbfcfd,#dde3e9);padding:8px}
+#pvSvgWrap svg{width:100%;height:100%;user-select:none;touch-action:none}
+#pvInfo{width:250px;overflow:auto;border-left:1px solid #cfd6de;background:#fff;padding:8px;font-size:12px}
+.lcd{background:#1c2a1c;border-radius:8px;padding:8px 10px;color:#9eff9e;font-family:Consolas,"Courier New",monospace;box-shadow:inset 0 2px 6px rgba(0,0,0,.6);margin-bottom:8px}
+.lcdt{font-size:10px;letter-spacing:.15em;color:#6fbf6f}
+.lcdv{font-size:26px;font-weight:700;text-shadow:0 0 6px rgba(120,255,120,.6)}
+.lcdv small{font-size:13px}
+.lcdg{display:grid;grid-template-columns:1fr auto;gap:1px 8px;font-size:12px}
+.lcdg span{color:#79c979}
+.lcdoff{color:#7aa07a;font-size:12px;padding:6px 0}
+.pvrow{display:flex;align-items:center;gap:6px;padding:5px 4px;border-radius:6px;cursor:pointer;border:1px solid transparent}
+.pvrow:hover,.pvrow.hl{background:#eef4fc;border-color:#c5dafb}
+.pvrow.hotrow{background:#fff3e0}
+.pvn{flex:1;min-width:0}.pvn b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}.pvn small{color:#64748b}
+.bar{height:5px;background:#e3e8ee;border-radius:3px;margin-top:3px;overflow:hidden}.bar i{display:block;height:100%;border-radius:3px;transition:width .3s}
+.pvs{font-size:11px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.pvs.on{background:#e8f5e9;color:#2e7d32}.pvs.off{background:#eceff1;color:#607d8b}.pvs.trip{background:#ff6d00;color:#fff}
+.pvtip{color:#64748b;line-height:1.35;margin-top:8px;border-top:1px solid #eef1f4;padding-top:6px}
+.pvmain{display:flex;align-items:center;gap:6px;margin:4px 0 8px}
+.pvmain select{padding:1px 3px;border:1px solid #c9d1db;border-radius:4px}
+.ro{display:block;padding:3px 4px;background:#eef1f4;border-radius:4px;color:var(--tx);font-size:12px}
 .tb:disabled{opacity:.4;cursor:default;background:#f8fafc}
 #status{align-items:center}
 #status #hint{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
@@ -136,6 +170,14 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
   <linearGradient id="gCopper" x1="0" x2="1"><stop offset="0" stop-color="#9c5a24"/><stop offset=".5" stop-color="#eaa66b"/><stop offset="1" stop-color="#9c5a24"/></linearGradient>
   <radialGradient id="gLed" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe7ef"/></radialGradient>
   <linearGradient id="gWood" x1="0" x2="1"><stop offset="0" stop-color="#a1887f"/><stop offset="1" stop-color="#6d4c41"/></linearGradient>
+  <linearGradient id="pvBox" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7dde3"/><stop offset=".5" stop-color="#b9c1c9"/><stop offset="1" stop-color="#8f98a2"/></linearGradient>
+  <linearGradient id="pvDoor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c3cad1"/><stop offset=".08" stop-color="#e3e8ec"/><stop offset=".9" stop-color="#cdd3d9"/><stop offset="1" stop-color="#a7b0b9"/></linearGradient>
+  <linearGradient id="pvCover" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9edf0"/><stop offset="1" stop-color="#cfd5db"/></linearGradient>
+  <linearGradient id="pvBrk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset=".15" stop-color="#262626"/><stop offset="1" stop-color="#121212"/></linearGradient>
+  <linearGradient id="pvHandle" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c1c1c"/><stop offset=".5" stop-color="#4a4a4a"/><stop offset="1" stop-color="#1c1c1c"/></linearGradient>
+  <linearGradient id="pvCu" x1="0" x2="1"><stop offset="0" stop-color="#a5602a"/><stop offset=".5" stop-color="#f0b27a"/><stop offset="1" stop-color="#a5602a"/></linearGradient>
+  <linearGradient id="pvCuH" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0b27a"/><stop offset="1" stop-color="#a5602a"/></linearGradient>
+  <linearGradient id="pvSn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6f8"/><stop offset="1" stop-color="#9aa3ac"/></linearGradient>
   <pattern id="gridS" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0H0V10" fill="none" stroke="#eef1f4" stroke-width=".6"/></pattern>
   <pattern id="gridB" width="100" height="100" patternUnits="userSpaceOnUse"><rect width="100" height="100" fill="url(#gridS)"/><path d="M100 0H0V100" fill="none" stroke="#dde3ea" stroke-width="1.2"/></pattern>
  </defs>
@@ -176,6 +218,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
    <button class="tb" data-a="rot" title="Rotar 90° (R)">⟳</button>
    <button class="tb" data-a="dup" title="Duplicar (Ctrl+D)">⧉</button>
    <button class="tb" data-a="del" title="Eliminar (Supr)">🗑</button>
+   <button class="tb" data-a="pview" title="Ver el tablero real con sus tacos (T)">🗄 Tablero</button>
    <button class="tb" data-a="auto" title="Cablear automáticamente lo seleccionado (sin selección: todo lo que falta)">⚙ Conexión automática</button>
   </div>
   <div class="grp"><label title="Atenúa todo lo que no pertenece al circuito elegido">Ver: <select id="viewC"></select></label></div>
@@ -183,6 +226,9 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
  <div id="palette"></div>
  <div id="wrap">
   <svg id="cv"><g id="world"><g id="layer"></g><g id="ov"></g></g></svg>
+  <div id="pview"><div class="pvh" id="pvHead"><b>🗄 Tablero de distribución</b>
+   <button data-pvl="door" title="Tapa cerrada">Tapa</button><button data-pvl="cover" title="Frente con los tacos">Frente</button><button data-pvl="interior" title="Sin cubierta: barras, cables">Interior</button><button id="pvClose" title="Cerrar (T)">✕</button></div>
+   <div class="pvbody"><div id="pvSvgWrap"></div><div id="pvInfo"></div></div></div>
  </div>
  <div id="side">
   <div class="tabs">
@@ -193,7 +239,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
   </div>
   <div id="sideBody"></div>
  </div>
- <div id="status"><span id="hint"></span><span id="hov"></span><span id="saved"></span><span id="coords"></span>
+ <div id="status"><span id="hint"></span><span id="hov"></span><span id="saved"></span><button id="muteBtn" title="Sonidos" style="border:0;background:none;cursor:pointer;font-size:14px">🔊</button><span id="coords"></span>
   <span class="zc"><button data-a="zout" title="Alejar">−</button><span id="zoomTxt"></span><button data-a="zin" title="Acercar">+</button><button data-a="fit" title="Ver todo el plano">Ajustar</button>
   <label><input type="checkbox" id="showLabels" checked> etiquetas</label><label><input type="checkbox" id="showGrid" checked> cuadrícula</label></span></div>
 </div>
@@ -375,7 +421,7 @@ const isElec=d=>!CAT[d.type].arch && !['tablero','empalme','varilla'].includes(d
 // =====================================================================
 //  Estado
 // =====================================================================
-function newState(){return {v:1,name:'Proyecto nuevo',iconScale:1,walls:[],rooms:[],devices:[],wires:[],circuits:[],bg:null,
+function newState(){return {v:1,name:'Proyecto nuevo',iconScale:1,mainOn:true,mainA:60,tarifa:900,walls:[],rooms:[],devices:[],wires:[],circuits:[],bg:null,
  colors:{faseA:'negro',faseB:'rojo',retorno:'azul',viajero:'amarillo'},view:{x:80,y:60,z:1}}}
 let state=newState();
 let mode='select', placeType=null, placeRot=0;
@@ -405,6 +451,7 @@ function fixState(){
  state.devices.forEach(d=>{const c=CAT[d.type]; if(c&&c.sw&&(!d.st||d.st.length!==c.sw)) d.st=Array(c.sw).fill(false); if(d.r==null)d.r=0});
  state.devices=state.devices.filter(d=>CAT[d.type]);
  state.circuits.forEach(c=>{if(c.on==null)c.on=true});
+ syncFases();
  cleanWires();
 }
 function cleanWires(){state.wires=state.wires.filter(w=>{const a=dev(w.a.d),b=dev(w.b.d);return a&&b&&termsOf(a).some(t=>t.k===w.a.t)&&termsOf(b).some(t=>t.k===w.b.t)})}
@@ -462,31 +509,35 @@ function simulate(){
   const uf=buildNet(true), pot=new Map(), panel=getPanel();
   const add=(k,p,src)=>{const r=uf.f(k);if(!pot.has(r))pot.set(r,{p:new Set(),src:new Set()});const o=pot.get(r);o.p.add(p);if(src)o.src.add(src)};
   if(panel){
-   state.circuits.forEach(c=>{if(!c.on)return;
+   if(state.mainOn!==false) state.circuits.forEach(c=>{if(!c.on)return;
     if(c.poles==2){add(panel.id+':C'+c.id+'a','L1',c.id);add(panel.id+':C'+c.id+'b','L2',c.id)}
     else add(panel.id+':C'+c.id+'a',c.fase==='B'?'L2':'L1',c.id)});
    add(panel.id+':N','N'); add(panel.id+':T','T');
   }
   let trip=new Set(), kind='';
   pot.forEach(o=>{const L=['L1','L2'].filter(x=>o.p.has(x));if(L.length&&(L.length>1||o.p.has('N')||o.p.has('T'))){o.src.forEach(s=>trip.add(s));kind=o.p.has('T')?'falla a tierra':'cortocircuito'}});
-  if(trip.size){trip.forEach(id=>{const c=circ(id);c.on=false;c.tripped=true;msgs.push(`¡${kind[0].toUpperCase()+kind.slice(1)} en ${cName(id)} (${c.name})! El breaker se disparó.`)});continue}
+  if(trip.size){trip.forEach(id=>{const c=circ(id);c.on=false;c.tripped=true;msgs.push(`¡${kind[0].toUpperCase()+kind.slice(1)} en ${cName(id)} (${c.name})! El taco se disparó al instante.`)});continue}
   const P=(d,k)=>{const o=pot.get(uf.f(d.id+':'+k));return o?[...o.p][0]:null};
-  const res={dev:{},live:new Set(),msgs};
+  const SRC=(d,k)=>{const o=pot.get(uf.f(d.id+':'+k));return o?[...o.src]:[]};
+  const res={dev:{},live:new Map(),msgs,amps:{},A:0,B:0,nA:0,nB:0,W:0};
+  const addLoad=(d,W,V,srcs)=>{const cid=srcs[0];if(!cid||!W)return;const c=circ(cid);const I=W/V;res.amps[cid]=(res.amps[cid]||0)+I;
+   if(c.poles==2){res.A+=I;res.B+=I}else if(c.fase==='B'){res.B+=I;res.nB+=I}else{res.A+=I;res.nA+=I} res.W+=W; res.dev[d.id].w=W};
   state.devices.forEach(d=>{
    const c=CAT[d.type]; let st=null;
    if(c.kind==='luz'||c.kind==='toma'){
-    const a=P(d,d.type==='int_toma'?'L':'F'), b=P(d,'N'), Ls=x=>x==='L1'||x==='L2';
+    const fk=d.type==='int_toma'?'L':'F', a=P(d,fk), b=P(d,'N'), Ls=x=>x==='L1'||x==='L2';
     if(Ls(a)&&b==='N') st='ok'; else if(a==='N'&&Ls(b)) st='pol'; else if(Ls(a)&&Ls(b)&&a!==b) st='sobre';
-    if(c.kind==='toma'&&st) res.dev[d.id]={on:true,st,gnd:P(d,'T')==='T'};
-    else res.dev[d.id]={on:st==='ok'||st==='pol',st};
+    if(c.kind==='toma'){res.dev[d.id]={on:!!st,st,gnd:P(d,'T')==='T'};const ap=APPL[d.plug|0];if(ap&&(st==='ok'||st==='pol'))addLoad(d,ap.w,120,[...SRC(d,fk),...SRC(d,'N')])}
+    else{res.dev[d.id]={on:st==='ok'||st==='pol',st};if(res.dev[d.id].on)addLoad(d,+d.va||0,120,[...SRC(d,fk),...SRC(d,'N')])}
    } else if(c.kind==='t220'){
-    const a=P(d,'F1'),b=P(d,'F2'); res.dev[d.id]={on:(a==='L1'&&b==='L2')||(a==='L2'&&b==='L1'),gnd:P(d,'T')==='T'};
+    const a=P(d,'F1'),b=P(d,'F2'),on=(a==='L1'&&b==='L2')||(a==='L2'&&b==='L1');
+    res.dev[d.id]={on,act:on&&!!d.use,gnd:P(d,'T')==='T'}; if(on&&d.use) addLoad(d,+d.va||0,240,SRC(d,'F1'));
    }
   });
-  state.wires.forEach(w=>{const p=P(dev(w.a.d),w.a.t);if(p==='L1'||p==='L2')res.live.add(w.id)});
+  state.wires.forEach(w=>{const p=P(dev(w.a.d),w.a.t);if(p==='L1'||p==='L2')res.live.set(w.id,SRC(dev(w.a.d),w.a.t)[0])});
   return res;
  }
- return {dev:{},live:new Set(),msgs};
+ return {dev:{},live:new Map(),msgs,amps:{},A:0,B:0,nA:0,nB:0,W:0};
 }
 
 // =====================================================================
@@ -494,6 +545,7 @@ function simulate(){
 // =====================================================================
 const svg=$('#cv');
 function wireSVG(w,o){
+ const flow=`style="animation-duration:${clamp(1.1-(o.I||0)/16,.12,1.1).toFixed(2)}s"`;
  const pts=wirePts(w).map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
  const C=COLORS[w.color]||COLORS.negro, sw=2.6;
  let s='';
@@ -503,15 +555,16 @@ function wireSVG(w,o){
     `<polyline points="${pts}" fill="none" stroke="${C.c}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`;
  if(C.stripe) s+=`<polyline points="${pts}" fill="none" stroke="${C.stripe}" stroke-width="${sw*.75}" stroke-dasharray="5 5" stroke-linejoin="round"/>`;
  s+=`<polyline points="${pts}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".7" stroke-linejoin="round" transform="translate(-.5,-.5)"/>`;
- if(o.live) s+=`<polyline class="live" points="${pts}" fill="none" stroke="#fff59d" stroke-width="1.3" stroke-linejoin="round"/>`;
+ if(o.hot) s+=`<polyline class="hot" points="${pts}" fill="none" stroke="#ff3d00" stroke-width="${sw+7}" stroke-linejoin="round" stroke-linecap="round"/>`;
+ if(o.live) s+=`<polyline class="live" ${flow} points="${pts}" fill="none" stroke="${o.I>0.05?'#ffffff':'#fff59d'}" stroke-width="${o.I>0.05?1.6:1.1}" stroke-linejoin="round"/>`;
  if(o.ui) s+=`<polyline data-hit="wire" data-id="${w.id}" points="${pts}" fill="none" stroke="transparent" stroke-width="11" style="cursor:pointer"/>`;
  return s;
 }
 const TFILL={f:'url(#gBrass)',n:'#e1e5e9',t:'#2e9d42',c:'#2b2b2b',j:'#ef6c00'};
 const TSTROKE={f:'#8a6d1a',n:'#6f7880',t:'#1b5e20',c:'#000',j:'#a84a00'};
 function deviceSVG(d,o){
- const c=CAT[d.type], s=scaleOf(d), on=o.sim&&o.sim.dev[d.id]&&o.sim.dev[d.id].on;
- let g=`<g ${o.ui?`data-hit="dev" data-id="${d.id}"`:''} transform="translate(${d.x} ${d.y}) rotate(${d.r||0}) scale(${s})" style="cursor:${o.ui?'move':'default'}">`;
+ const c=CAT[d.type], s=scaleOf(d), rr=o.sim&&o.sim.dev[d.id], on=!!(rr&&(c.kind==='t220'?rr.act:rr.on));
+ let g=`<g ${o.ui?`data-hit="dev" data-id="${d.id}"`:''} ${o.ui&&freshOn.has(d.id)?'class="pop"':''} transform="translate(${d.x} ${d.y}) rotate(${d.r||0}) scale(${s})" style="cursor:${o.ui?'move':'default'}">`;
  g+=DRAW[d.type](d,on);
  if(o.sim&&o.sim.dev[d.id]){
   const r=o.sim.dev[d.id];
@@ -557,23 +610,31 @@ function worldSVG(o){
  state.walls.forEach(w=>{s+=`<line ${o.ui?`data-hit="wall" data-id="${w.id}"`:''} x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}" stroke="#3e4a55" stroke-width="${w.th}" stroke-linecap="square" style="cursor:${o.ui?'move':'default'}"/>`});
  state.devices.filter(d=>CAT[d.type].arch).forEach(d=>s+=deviceSVG(d,o));
  const elec=state.devices.filter(d=>!CAT[d.type].arch);
- const vc=o.ui&&settings.viewC&&circ(settings.viewC)?settings.viewC:'';
+ const vc0=o.ui?(pv.hoverC||settings.viewC):''; const vc=vc0&&circ(vc0)?vc0:'';
  const dimD=d=>vc&&isElec(d)&&d.c!==vc, wc=w=>w.c||dev(w.a.d).c||dev(w.b.d).c, dimW=w=>vc&&wc(w)!==vc;
  const G=(dim,x,op)=>dim?`<g opacity="${op}">${x}</g>`:x;
- state.wires.forEach(w=>s+=G(dimW(w),wireSVG(w,{ui:o.ui,sel:o.ui&&sel.has('w:'+w.id),live:o.sim&&o.sim.live.has(w.id)}),.1));
+ state.wires.forEach(w=>{const lc=o.sim&&o.sim.live.get(w.id);s+=G(dimW(w),wireSVG(w,{ui:o.ui,sel:o.ui&&sel.has('w:'+w.id),live:!!(o.sim&&o.sim.live.has(w.id)),I:lc?(o.sim.amps[lc]||0):0,hot:!!(lc&&(ovAcc[lc]||0)>0)}),.1)});
  elec.forEach(d=>s+=G(dimD(d),deviceSVG(d,o),.22));
+ if(o.sim) elec.forEach(d=>{const ap=isOutlet(d)?APPL[d.plug|0]:(d.type==='toma_220'&&d.use?{i:'🍳',w:d.va}:null); if(!ap)return;
+  const r=o.sim.dev[d.id]||{}, a=local2w(d,0,isOutlet(d)?(d.type==='int_toma'?14:8):0), q=local2w(d,0,62), on=r.on;
+  s+=G(dimD(d),`<g style="pointer-events:none"><path d="M${a.x} ${a.y} Q${(a.x+q.x)/2+8} ${(a.y+q.y)/2} ${q.x} ${q.y}" fill="none" stroke="#263238" stroke-width="1.6"/>`+
+   `<rect x="${q.x-19}" y="${q.y-13}" width="38" height="26" rx="6" fill="${on?'#fffde7':'#eceff1'}" stroke="${on?'#f9a825':'#90a4ae'}" stroke-width="1.2"/>`+
+   `<text x="${q.x}" y="${q.y+3}" font-size="13" text-anchor="middle">${ap.i}</text><text x="${q.x}" y="${q.y+11}" font-size="5.5" text-anchor="middle" fill="${on?'#e65100':'#78909c'}" font-weight="700" font-family="Segoe UI,Arial">${on?ap.w+' W':'sin energía'}</text></g>`,.22)});
  elec.forEach(d=>s+=G(dimD(d),termsSVG(d,o),.22));
  if(o.labels) elec.forEach(d=>s+=G(dimD(d),tagSVG(d),.25));
  return s;
 }
 function render(){
- if(mode==='sim'){simRes=simulate(); if(simRes.msgs.length) toast(simRes.msgs.join(' '),true)} else simRes=null;
+ if(mode==='sim'){simRes=simulate(); if(simRes.msgs.length){toast(simRes.msgs.join(' '),true);sfx('trip')}
+  freshOn=new Set(); const now={}; Object.entries(simRes.dev).forEach(([id,r])=>{const d=dev(id);const on=CAT[d.type].kind==='t220'?r.act:r.on;now[id]=on;if(on&&!prevOn[id]){freshOn.add(id);if(d.type==='timbre')sfx('ding')}}); prevOn=now;
+ } else {simRes=null;prevOn={};freshOn=new Set()}
  const v=state.view;
  $('#world').setAttribute('transform',`translate(${v.x} ${v.y}) scale(${v.z})`);
  $('#layer').innerHTML=worldSVG({ui:true,grid:settings.grid,labels:settings.showLabels&&(v.z>.45||mode==='wire'),sim:simRes});
  svg.setAttribute('class','m-'+mode);
  renderOv();
  $('#zoomTxt').textContent=Math.round(v.z*100)+' %';
+ if(pv.open) renderPview();
  $('#projName').value=state.name;
  $('[data-a=undo]').disabled=!undoS.length; $('[data-a=redo]').disabled=!redoS.length;
  const hasSel=sel.size>0; $('[data-a=rot]').disabled=!hasSel; $('[data-a=dup]').disabled=!hasSel; $('[data-a=del]').disabled=!hasSel;
@@ -641,11 +702,12 @@ const HINTS={
  wall:'Clic para iniciar el muro y clic en cada esquina · Clic dos veces en el mismo punto, clic derecho o Esc para terminar · Shift: ángulo libre',
  room:'Arrastre para dibujar un espacio (alcoba, cocina, baño…). Luego elija su tipo y nombre en Propiedades.',
  wire:'Clic en un borne (tornillo) para iniciar · clics intermedios para doblar el cable · clic en otro borne para terminar · Retroceso: quita el último punto · Esc: cancelar',
- sim:'SIMULACIÓN: clic en las teclas de los interruptores para accionarlos y en los breakers del tablero para abrir/cerrar circuitos.',
+ sim:'SIMULACIÓN: clic en interruptores para accionarlos · clic en tomacorrientes para conectar aparatos · T: ver el tablero con sus tacos',
  place:'Clic para colocar · Se pega al muro más cercano (Alt: libre) · R: rotar · Esc: terminar'
 };
 function setMode(m){
  mode=m; wireDraft=null; wallDraft=null;
+ if(m==='sim'&&getPanel()&&!pv.autoOpened){pv.autoOpened=true;pv.open=true;$('#pview').classList.add('show')}
  if(m!=='place') placeType=null;
  document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
  document.querySelectorAll('.pi').forEach(el=>el.classList.toggle('on',el.dataset.type===placeType));
@@ -739,6 +801,7 @@ window.addEventListener('pointermove',e=>{
 });
 window.addEventListener('pointerup',e=>{
  if(!drag) return; const d=drag; drag=null;
+ if(d.t==='mom'){const x=dev(d.id);if(x){x.st[0]=false;changed()}return}
  if(['move','vtx','rh','wh'].includes(d.t)&&d.moved){undoS.push(d.before);redoS=[];changed();return}
  if(d.t==='rsel'){
   const x1=Math.min(d.a.x,d.b.x),x2=Math.max(d.a.x,d.b.x),y1=Math.min(d.a.y,d.b.y),y2=Math.max(d.a.y,d.b.y);
@@ -763,12 +826,33 @@ svg.addEventListener('wheel',e=>{
 },{passive:false});
 
 function simClick(H,p){
- if(H.hit==='brk'){const c=circ(H.c);c.on=!c.on;c.tripped=false;changed(false);return}
+ if(H.hit==='brk'){toggleBreaker(H.c);return}
  if(H.hit==='dev'||H.hit==='term'){
-  const d=dev(H.id), c=CAT[d.type]; if(!c.sw) return;
-  const l=w2local(d,p), n=c.sw, g=clamp(Math.floor((l.x+14)/(28/n)),0,n-1);
-  d.st[g]=!d.st[g]; changed(false);
+  const d=dev(H.id), c=CAT[d.type];
+  if(d.type==='tablero'){openPview();return}
+  if(d.type==='pulsador'){d.st[0]=true;sfx('click');drag={t:'mom',id:d.id};changed();return}
+  if(d.type==='int_toma'&&w2local(d,p).y>0){cyclePlug(d);return}
+  if(c.sw){const l=w2local(d,p), n=c.sw, g=clamp(Math.floor((l.x+14)/(28/n)),0,n-1); d.st[g]=!d.st[g]; sfx('click'); changed(); return}
+  if(isOutlet(d)){cyclePlug(d);return}
+  if(c.kind==='t220'){d.use=!d.use;sfx('click');changed();const r=simRes&&simRes.dev[d.id];toast(d.use?`${c.n} encendida${r&&r.on?' ('+f0(d.va)+' W)':' – pero no le llega energía'}`:`${c.n} apagada`);return}
  }
+}
+function cyclePlug(d){
+ d.plug=((d.plug|0)+1)%APPL.length; sfx('plug'); changed();
+ const ap=APPL[d.plug], r=simRes&&simRes.dev[d.id];
+ toast(ap?`${ap.i} ${ap.n} conectado (${ap.w} W)${r&&!r.on?' – el tomacorriente no tiene energía':''}. Clic otra vez para cambiar de aparato.`:'Tomacorriente desconectado');
+}
+function toggleBreaker(cid){
+ const c=circ(cid); if(!c) return; const prev=c.tripped?'trip':c.on?'on':'off';
+ if(c.tripped){c.tripped=false;c.on=false;toast('Taco rearmado a OFF. Haga clic otra vez para subirlo a ON.')}
+ else c.on=!c.on;
+ ovAcc[cid]=0; pv.anim={cid,prev}; sfx('clack'); changed();
+}
+function toggleMain(){
+ const prev=state.mainTrip?'trip':state.mainOn!==false?'on':'off';
+ if(state.mainTrip){state.mainTrip=false;state.mainOn=false;toast('Totalizador rearmado a OFF. Clic otra vez para encender.')}
+ else state.mainOn=state.mainOn===false;
+ ovAcc.main=0; pv.anim={cid:'main',prev}; sfx('clack'); changed();
 }
 function wallClick(e,p){
  const q=snapWall(p,e.shiftKey);
@@ -824,7 +908,14 @@ function hoverInfo(e){
  const hit=e.target&&e.target.closest?e.target.closest('#cv [data-hit]'):null; let t='';
  if(hit){const H=hit.dataset;
   if(H.hit==='term'){const d=dev(H.id);const tt=termsOf(d).find(x=>x.k===H.t);if(tt)t=CAT[d.type].n+' · '+termLabel(d,tt)}
-  else if(H.hit==='dev'||H.hit==='brk'){const d=dev(H.id);if(d)t=devLabel(d)+(mode==='sim'&&CAT[d.type].sw?' – clic para accionar':'')+(H.hit==='brk'?' – breaker '+cName(H.c):'')}
+  else if(H.hit==='dev'||H.hit==='brk'){const d=dev(H.id);if(d){t=devLabel(d)+(H.hit==='brk'?' – taco '+cName(H.c):'');
+   if(mode==='sim'){const r=simRes&&simRes.dev[d.id],C=CAT[d.type];
+    if(r) t+=r.w?` · consumiendo ${f0(r.w)} W`:(r.on?' · con energía':' · sin energía');
+    if(d.type==='tablero') t+=' – clic para ver el tablero real';
+    else if(d.type==='pulsador') t+=' – mantenga presionado para timbrar';
+    else if(C.sw) t+=' – clic para accionar';
+    else if(isOutlet(d)) t+=' – clic para conectar un aparato';
+    else if(C.kind==='t220') t+=' – clic para encender/apagar';}}}
   else if(H.hit==='wire'){const w=wireById(H.id);if(w)t=`Cable ${COLORS[w.color].n} ${w.gauge} AWG · ${f1(wireLen(w)/100)} m${w.c&&circ(w.c)?' · '+cName(w.c):''}`}
   else if(H.hit==='room'){const r=state.rooms.find(r=>r.id===H.id);if(r)t=`${r.name} · ${ROOMT[r.type]} · ${f1(r.w*r.h/1e4)} m²`}
   else if(H.hit==='wall'){const w=state.walls.find(w=>w.id===H.id);if(w)t=`Muro ${f1(Math.hypot(w.x2-w.x1,w.y2-w.y1)/100)} m`}}
@@ -832,6 +923,7 @@ function hoverInfo(e){
 }
 svg.addEventListener('dblclick',e=>{
  const hit=e.target.closest('[data-hit]');
+ if(hit&&(hit.dataset.hit==='dev'||hit.dataset.hit==='brk')&&dev(hit.dataset.id)&&dev(hit.dataset.id).type==='tablero'){openPview();return}
  if(mode==='select'&&hit&&hit.dataset.hit==='vtx'){pushUndo();wireById(hit.dataset.id).pts.splice(+hit.dataset.i,1);changed()}
  if(mode==='wall'){wallDraft=null;renderOv()}
 });
@@ -858,6 +950,7 @@ window.addEventListener('keydown',e=>{
  if(e.key==='Backspace'){if(mode==='wire'&&wireDraft){wireDraft.pts.pop();renderOv()}else delSel();e.preventDefault();return}
  const k=e.key.toLowerCase();
  if(k==='r'){if(mode==='place'){placeRot=(placeRot+90)%360;renderOv()}else rotSel();return}
+ if(k==='t'){pv.open?closePview():openPview();return}
  if(k==='v')setMode('select'); if(k==='m')setMode('wall'); if(k==='h')setMode('room'); if(k==='c')setMode('wire'); if(k==='s')setMode(mode==='sim'?'select':'sim');
 });
 window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='Alt'){altDown=false;renderOv()}});
@@ -865,7 +958,7 @@ window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='A
 // =====================================================================
 //  Acciones de edición
 // =====================================================================
-function changed(undoable){saveLocal();render();renderSide()}
+function changed(undoable){syncFases();saveLocal();render();renderSide()}
 function delSel(){
  if(!sel.size) return; pushUndo();
  sel.forEach(k=>{const [t,id]=k.split(':');
@@ -976,7 +1069,7 @@ function addCircuit(kind){
  const K=KINDS[kind], n=state.circuits.filter(c=>c.kind===kind).length;
  const fase=K.p==2?'AB':(state.circuits.filter(c=>c.poles!=2).length%2?'B':'A');
  const c={id:uid(),kind,name:K.n+(n?' '+(n+1):''),breaker:K.br,gauge:K.g,poles:K.p,fase,dif:false,on:true};
- state.circuits.push(c); return c;
+ state.circuits.push(c); syncFases(); return c;
 }
 const countDev=c=>state.devices.filter(d=>d.c===c.id).length;
 function defaultCircuit(d){
@@ -1199,12 +1292,14 @@ function sideProp(B){
  const items=[...sel]; let h='';
  if(mode==='sim'){
   const ls=state.devices.filter(isLight), on=ls.filter(d=>simRes&&simRes.dev[d.id]&&simRes.dev[d.id].on).length;
-  h+=`<h3>▶ Simulación</h3><div class="note">Haga clic en las teclas de los interruptores para encender/apagar. Haga clic en un breaker del tablero para abrirlo o cerrarlo.<br><br>Luces encendidas: <b>${on} de ${ls.length}</b>.<br><br>Indicador en tomacorrientes: <span style="color:#43a047">●</span> energizado con tierra · <span style="color:#fb8c00">●</span> sin tierra · <span style="color:#e53935">●</span> polaridad invertida.</div>`;
-  const tr=state.circuits.filter(c=>c.tripped); if(tr.length) h+=`<div class="note warnbox">Breakers disparados: ${tr.map(c=>cName(c.id)).join(', ')}. Corrija el cableado y haga clic en el breaker para rearmarlo.</div>`;
-  h+=`<div class="btnrow"><button class="btn" id="bReset">Rearmar todos los breakers</button><button class="btn" id="bOff">Apagar todos los interruptores</button></div>`;
+  h+=`<h3>▶ Simulación</h3><div class="note">• Clic en las teclas de los interruptores para encender/apagar.<br>• Mantenga presionado el pulsador para que suene el timbre.<br>• Clic en un <b>tomacorriente</b> para conectar un aparato (TV, licuadora, plancha…); clic otra vez para cambiarlo.<br>• Clic en la ducha o la estufa para encenderlas.<br>• Abra el <b>🗄 Tablero</b> (tecla T) para ver los tacos, el medidor y las corrientes.<br><br>Luces encendidas: <b>${on} de ${ls.length}</b>.<br><br>Indicador en tomacorrientes: <span style="color:#43a047">●</span> energizado con tierra · <span style="color:#fb8c00">●</span> sin tierra · <span style="color:#e53935">●</span> polaridad invertida.</div>`;
+  const tr=state.circuits.filter(c=>c.tripped); if(tr.length) h+=`<div class="note warnbox">Tacos disparados: ${tr.map(c=>cName(c.id)).join(', ')}. Corrija la causa (cableado o exceso de aparatos) y rearme el taco: clic para bajarlo a OFF y otro clic para subirlo a ON.</div>`;
+  h+=`<div class="btnrow"><button class="btn" id="bReset">Rearmar todos los tacos</button><button class="btn" id="bOff">Apagar todos los interruptores</button><button class="btn" id="bUnplug">Desconectar aparatos</button><button class="btn pri" id="bPv">🗄 Ver tablero</button></div>`;
   B.innerHTML=h;
-  $('#bReset').onclick=()=>{state.circuits.forEach(c=>{c.on=true;c.tripped=false});changed()};
+  $('#bReset').onclick=()=>{state.circuits.forEach(c=>{c.on=true;c.tripped=false});state.mainOn=true;state.mainTrip=false;ovAcc={};sfx('clack');changed()};
   $('#bOff').onclick=()=>{state.devices.forEach(d=>{if(d.st)d.st=d.st.map(()=>false)});changed()};
+  $('#bUnplug').onclick=()=>{state.devices.forEach(d=>{d.plug=0;d.use=false});changed()};
+  $('#bPv').onclick=openPview;
   return;
  }
  if(items.length===1){
@@ -1321,7 +1416,7 @@ function propWall(B,w){
  $('#lT').onchange=e=>upd(()=>w.th=+e.target.value); $('#lD').onclick=delSel;
 }
 function sidePanel(B){
- const LT=loadTable(); let h=`<h3>🗄 Tablero y circuitos</h3>`;
+ const LT=loadTable(), LY=panelLayout(); let h=`<h3>🗄 Tablero y circuitos</h3><div class="btnrow"><button class="btn pri" id="openPv">🔍 Ver el tablero real (tacos)</button></div>`;
  if(!getPanel()) h+=`<div class="note warnbox">Aún no ha colocado el tablero en el plano (paleta izquierda → Tablero y especiales).</div>`;
  state.circuits.forEach((c,i)=>{
   h+=`<div class="cc" style="border-left:5px solid ${CCOL[i%CCOL.length]}">
@@ -1330,11 +1425,11 @@ function sidePanel(B){
    <label>Polos<select data-ci="${c.id}" data-f="poles"><option ${c.poles!=2?'selected':''} value="1">1 (120 V)</option><option ${c.poles==2?'selected':''} value="2">2 (240 V)</option></select></label>
    <label>Breaker<select data-ci="${c.id}" data-f="breaker">${BREAKERS.map(b=>`<option value="${b}" ${b==c.breaker?'selected':''}>${b} A</option>`).join('')}</select></label>
    <label>Calibre<select data-ci="${c.id}" data-f="gauge">${GAUGES.map(g=>`<option value="${g}" ${g===c.gauge?'selected':''}>${g} AWG</option>`).join('')}</select></label>
-   <label>Fase${c.poles==2?'<select disabled><option>A-B</option></select>':`<select data-ci="${c.id}" data-f="fase"><option ${c.fase!=='B'?'selected':''}>A</option><option ${c.fase==='B'?'selected':''}>B</option></select>`}</label>
+   <label title="La fase depende de la fila donde está el taco. Cámbiela arrastrando el taco en la vista del tablero.">Fase<span class="ro">${c.poles==2?'A-B':c.fase} · pos. ${(LY.pos[c.id]||{}).slot+1}</span></label>
    <label title="Breaker con protección diferencial (falla a tierra)">Diferencial<span><input type="checkbox" data-ci="${c.id}" data-f="dif" ${c.dif?'checked':''}> sí</span></label></div></div>`;
  });
  h+=`<div class="btnrow"><select id="newK">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select><button class="btn pri" id="addC">+ Agregar circuito</button></div>`;
- h+=`<div class="note">Calibre mínimo según breaker (cobre, NTC 2050): 15 A → 14 AWG · 20 A → 12 AWG · 30 A → 10 AWG · 40 A → 8 AWG. Al cambiar el tipo de circuito se ajustan breaker y calibre recomendados.</div>`;
+ h+=`<div class="note">La <b>fase</b> (A o B) la define la fila donde está el taco: las filas se alternan A, B, A, B… Para balancear, arrastre los tacos en la vista del tablero real.<br><br>Calibre mínimo según breaker (cobre, NTC 2050): 15 A → 14 AWG · 20 A → 12 AWG · 30 A → 10 AWG · 40 A → 8 AWG. Al cambiar el tipo de circuito se ajustan breaker y calibre recomendados.</div>`;
  h+=`<h4>Cuadro de cargas</h4><table class="t"><tr><th>Circ.</th><th>Ilum.</th><th>Tomas</th><th>Esp.</th><th>VA</th><th>A</th><th>Brk</th><th>AWG</th><th>Fase</th></tr>`+
   LT.rows.map(r=>`<tr><td>C${r.i+1}</td><td class="n">${r.il}</td><td class="n">${r.to}</td><td class="n">${r.es}</td><td class="n">${f0(r.va)}</td><td class="n" style="${r.I>r.c.breaker*.8?'color:#c62828;font-weight:700':''}">${f1(r.I)}</td><td class="n">${r.c.poles==2?'2x':''}${r.c.breaker}</td><td class="n">${r.c.gauge}</td><td>${r.c.poles==2?'A-B':r.c.fase}</td></tr>`).join('')+
   `<tr><th colspan="4">Total instalado</th><th class="n">${f0(LT.gen+LT.esp)}</th><th colspan="4"></th></tr></table>`;
@@ -1357,6 +1452,7 @@ function sidePanel(B){
  B.querySelectorAll('[data-cdel]').forEach(el=>el.onclick=()=>{const c=circ(el.dataset.cdel);if(!confirm(`¿Eliminar el circuito ${cName(c.id)} «${c.name}»? Sus cables del tablero se borrarán.`))return;
   upd(()=>{state.circuits=state.circuits.filter(x=>x!==c);state.devices.forEach(d=>{if(d.c===c.id)d.c=null});cleanWires()})});
  $('#addC').onclick=()=>upd(()=>addCircuit($('#newK').value));
+ $('#openPv').onclick=openPview;
  B.querySelectorAll('[data-vc]').forEach(el=>el.onclick=()=>setViewC(settings.viewC===el.dataset.vc?'':el.dataset.vc));
 }
 function sideCheck(B,iss){
@@ -1444,6 +1540,7 @@ function help(){
  <li><b>Guardar / Imprimir:</b> el trabajo se guarda solo en este equipo, y con <b>Guardar</b> lo exporta a un archivo. <b>Imprimir / PDF</b> genera el plano, el cuadro de cargas y los materiales.</li>
  </ol>
  <h3>Atajos</h3><p>V seleccionar · M muro · H espacio · C cable · S simular · R rotar · Supr eliminar · Ctrl+Z / Ctrl+Y deshacer / rehacer · Ctrl+C / Ctrl+V copiar y pegar (donde esté el ratón) · Ctrl+D duplicar · Flechas mover fino (Shift: 50 cm) · Ctrl+S guardar · Rueda zoom · Espacio+arrastrar desplazar · Esc terminar.</p>
+ <h3>Simulación interactiva</h3><p>En <b>▶ Simular</b>: accione interruptores, mantenga presionado el pulsador para que suene el timbre, haga clic en los <b>tomacorrientes para conectar aparatos</b> (TV, licuadora, plancha…) y en la ducha o la estufa para encenderlas. Abra el <b>🗄 Tablero</b> (tecla T) para ver los tacos reales, el medidor de energía y la corriente de cada circuito. Si conecta demasiados aparatos, los cables se ponen naranja y el taco <b>se dispara por sobrecarga</b>. Un taco disparado se rearma bajándolo a OFF y luego subiéndolo a ON. Arrastrando un taco a otra fila cambia su fase (A o B).</p>
  <h3>Trucos</h3><p><b>Clic derecho</b> sobre cualquier cosa abre un menú (rotar, duplicar, asignar circuito, cablear…). Los interruptores y tomacorrientes <b>se pegan al muro</b> y miran hacia el espacio (Alt para ubicarlos libres). Con <b>Ver:</b> (barra superior) o el 👁 de la pestaña Tablero se muestra un solo circuito. Puede <b>arrastrar</b> aparatos desde la paleta y <b>buscarlos</b> por nombre. Pase el ratón sobre un borne para saber qué es.</p>
  <h3>Conexiones típicas</h3>
  <p><b>Sencillo:</b> fase → COM del interruptor; S → F del bombillo (retorno); neutro → N del bombillo.<br>
@@ -1504,6 +1601,250 @@ function buildSample(){
 }
 
 // =====================================================================
+//  Tablero realista interactivo, sonidos y sobrecarga
+// =====================================================================
+const APPL=[null,{n:'Cargador de celular',w:10,i:'📱'},{n:'Televisor',w:120,i:'📺'},{n:'Computador portátil',w:65,i:'💻'},{n:'Nevera',w:250,i:'🧊'},{n:'Licuadora',w:600,i:'🥤'},{n:'Horno microondas',w:1200,i:'🍲'},{n:'Plancha de ropa',w:1200,i:'👕'},{n:'Secador de pelo',w:1600,i:'💨'},{n:'Calentador eléctrico',w:2000,i:'♨️'}];
+let pv={open:false,level:'door',hoverC:'',drag:null,anim:null,autoOpened:false,doorAnim:null};
+let ovAcc={}, prevOn={}, freshOn=new Set();
+let muted=false; try{muted=localStorage.getItem('disenoElectrico.mute')==='1'}catch(e){}
+let AC=null;
+function sfx(k){
+ if(muted) return;
+ try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)(); const t=AC.currentTime;
+  const noise=(dur,gain,freq,q=1.2)=>{const b=AC.createBuffer(1,Math.max(1,AC.sampleRate*dur|0),AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);
+   const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;const g=AC.createGain();g.gain.value=gain;s.connect(f).connect(g).connect(AC.destination);s.start(t)};
+  const tone=(f,st,dur,gain,type='sine')=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t+st);g.gain.linearRampToValueAtTime(gain,t+st+.01);g.gain.exponentialRampToValueAtTime(.0001,t+st+dur);o.connect(g).connect(AC.destination);o.start(t+st);o.stop(t+st+dur+.05)};
+  if(k==='click'){noise(.035,.7,3200)}
+  if(k==='clack'){noise(.07,1.4,900,.8);noise(.03,.6,4200)}
+  if(k==='plug'){noise(.05,.6,1800)}
+  if(k==='trip'){noise(.18,2,500,.6);tone(110,0,.3,.12,'sawtooth')}
+  if(k==='ding'){tone(988,0,.7,.22);tone(784,.35,.9,.22)}
+ }catch(e){}
+}
+$('#muteBtn').textContent=muted?'🔇':'🔊';
+$('#muteBtn').onclick=()=>{muted=!muted;$('#muteBtn').textContent=muted?'🔇':'🔊';try{localStorage.setItem('disenoElectrico.mute',muted?'1':'0')}catch(e){}};
+
+// Posiciones de los tacos: dos columnas; posición s → fila s>>1, columna s&1. Las filas alternan fase A/B.
+function panelLayout(){
+ const occ=new Set(), pos={}, K=(r,c)=>r+','+c;
+ const free=(r,c,n)=>{for(let k=0;k<n;k++)if(occ.has(K(r+k,c)))return false;return true};
+ const take=(cc,r,col,n)=>{for(let k=0;k<n;k++)occ.add(K(r+k,col));pos[cc.id]={row:r,col,n,slot:r*2+col}};
+ state.circuits.forEach(c=>{const n=c.poles==2?2:1;if(c.slot!=null){const r=c.slot>>1,col=c.slot&1;if(free(r,col,n))take(c,r,col,n)}});
+ state.circuits.forEach(c=>{if(pos[c.id])return;const n=c.poles==2?2:1;for(let s=0;;s++){const r=s>>1,col=s&1;if(free(r,col,n)){c.slot=s;take(c,r,col,n);break}}});
+ let rows=0; Object.values(pos).forEach(p=>rows=Math.max(rows,p.row+p.n));
+ return {pos,rows,occ};
+}
+function syncFases(){
+ const L=panelLayout();
+ state.circuits.forEach(c=>{const p=L.pos[c.id]; const f=c.poles==2?'AB':(p.row%2===0?'A':'B');
+  if(c.fase!==f){c.fase=f; if(c.poles!=2) state.wires.forEach(w=>{if(w.c===c.id&&w.role==='fase')w.color=colorFor('fase',c,'a')})}});
+}
+function openPview(){
+ if(!getPanel()) return toast('Primero coloque el tablero en el plano (paleta → Tablero y especiales).',true);
+ pv.open=true; $('#pview').classList.add('show'); renderPview();
+}
+function closePview(){pv.open=false;pv.hoverC='';$('#pview').classList.remove('show');render()}
+function pvGeom(){const L=panelLayout(),W=440,top=122,RH=38,rows=Math.max(6,L.rows+(L.rows%2));return {L,W,top,RH,rows,H:top+rows*RH+112,cx:W/2,BW:150,gap:10}}
+function brkBox(g,p){return {x:p.col===0?g.cx-g.gap-g.BW:g.cx+g.gap,y:g.top+p.row*g.RH+3,w:g.BW,h:p.n*g.RH-6}}
+const T8=(x,y,t,fs,fill,anchor='middle',w='600',fam='Segoe UI,Arial')=>`<text x="${x}" y="${y}" font-size="${fs}" fill="${fill}" text-anchor="${anchor}" font-weight="${w}" font-family="${fam}">${t}</text>`;
+function pline(pts,col,w){const C=COLORS[col]||{c:col,o:'#000'};const P=pts.map(p=>p.join(',')).join(' ');return `<polyline points="${P}" fill="none" stroke="${C.o}" stroke-width="${w+1.4}" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${P}" fill="none" stroke="${C.c}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`+(C.stripe?`<polyline points="${P}" fill="none" stroke="${C.stripe}" stroke-width="${w*.7}" stroke-dasharray="6 6"/>`:'')}
+function panelWireColor(key,def){const P=getPanel();const w=P&&state.wires.find(w=>(w.a.d===P.id&&w.a.t===key)||(w.b.d===P.id&&w.b.t===key));return w?w.color:def}
+function warnSticker(x,y,sc=1){
+ return `<g transform="translate(${x} ${y}) scale(${sc})"><rect x="-38" y="-30" width="76" height="62" rx="4" fill="#ffd600" stroke="#111" stroke-width="1.5"/>`+
+  `<path d="M0 -25 L22 10 L-22 10 Z" fill="#ffd600" stroke="#111" stroke-width="3" stroke-linejoin="round"/><path d="M2 -16 L-6 0 L0 0 L-3 8 L7 -5 L1 -5 L4 -16 Z" fill="#111"/>`+
+  T8(0,20,'PELIGRO',8.5,'#111','middle','800')+T8(0,28.5,'RIESGO ELÉCTRICO',6,'#111','middle','800')+`</g>`;
+}
+function mainSVG(g){
+ const {cx}=g, st=state.mainTrip?'trip':state.mainOn!==false?'on':'off', x=cx-72,y=22,w=144,h=78;
+ const hy={on:36,off:66,trip:51}, cur=hy[st];
+ let a=''; if(pv.anim&&pv.anim.cid==='main'){a=`<animateTransform id="pvAnim" attributeName="transform" type="translate" from="0 ${hy[pv.anim.prev]-cur}" to="0 0" dur=".16s" begin="indefinite" fill="freeze"/>`}
+ const I=simRes?Math.max(simRes.A,simRes.B):0, hot=(ovAcc.main||0)>0;
+ return `<g data-pmain="1" style="cursor:pointer"><title>Totalizador ${state.mainA} A – clic para ${st==='on'?'apagar':'encender'} toda la casa</title>`+
+  `<rect x="${x+2}" y="${y+3}" width="${w}" height="${h}" rx="5" fill="rgba(0,0,0,.35)"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="url(#pvBrk)" stroke="#000"/>`+
+  `<rect x="${x+3}" y="${y+2}" width="${w-6}" height="3" rx="1.5" fill="rgba(255,255,255,.13)"/>`+
+  `<rect x="${cx-34}" y="${y+10}" width="68" height="54" rx="4" fill="#0a0a0a" stroke="#333"/>`+
+  T8(cx-44,y+17,'ON',6,'#bbb','end')+T8(cx-44,y+60,'OFF',6,'#bbb','end')+
+  `<g><rect x="${cx-30}" y="${cur}" width="60" height="22" rx="3" fill="url(#pvHandle)" stroke="#000"/><line x1="${cx}" y1="${cur+2}" x2="${cx}" y2="${cur+20}" stroke="#111" stroke-width="2"/>${T8(cx,cur+15,state.mainA,11,'#fff','middle','800')}${a}</g>`+
+  (st==='trip'?`<rect x="${cx+38}" y="${y+28}" width="26" height="12" rx="2" fill="#ff6d00"/>${T8(cx+51,y+37,'TRIP',7,'#fff','middle','800')}`:'')+
+  T8(cx,y+h-5,'TOTALIZADOR 2P',7,'#cfd8dc','middle','700')+
+  `<circle cx="${x+12}" cy="${y+14}" r="3.5" fill="${st==='on'?(hot?'#ff3d00':'#4caf50'):'#333'}" ${hot?'class="blink"':''}/>`+
+  (simRes&&st==='on'?T8(x+w-8,y+18,f1(I)+' A',8,hot?'#ff8a65':'#9eff9e','end','700','Consolas,monospace'):'')+`</g>`;
+}
+function breakerSVG(c,g,i){
+ const p=g.L.pos[c.id]; if(!p) return ''; const b=brkBox(g,p), sim=simRes;
+ const st=c.tripped?'trip':c.on?'on':'off', hw=48, wx=b.x+b.w/2-hw/2, hdl=20;
+ const X={on:p.col===0?wx+hw-hdl-3:wx+3, off:p.col===0?wx+3:wx+hw-hdl-3, trip:wx+hw/2-hdl/2}, hx=X[st];
+ const I=sim&&st==='on'&&state.mainOn!==false?(sim.amps[c.id]||0):0, r=I/c.breaker, hot=(ovAcc[c.id]||0)>0;
+ let a=''; if(pv.anim&&pv.anim.cid===c.id){a=`<animateTransform id="pvAnim" attributeName="transform" type="translate" from="${X[pv.anim.prev]-hx} 0" to="0 0" dur=".14s" begin="indefinite" fill="freeze"/>`}
+ const outer=p.col===0?b.x:b.x+b.w, inner=p.col===0?b.x+b.w:b.x;
+ let s=`<g data-pb="${c.id}" style="cursor:grab"><title>${esc(`C${i+1} · ${c.name}\n${c.poles==2?'2 polos (240 V)':'1 polo · fase '+c.fase} · ${c.breaker} A · cable ${c.gauge} AWG${c.dif?' · diferencial':''}\nClic: subir/bajar · Arrastrar: cambiar de posición`)}</title>`;
+ s+=`<rect x="${b.x+1.5}" y="${b.y+2.5}" width="${b.w}" height="${b.h}" rx="4" fill="rgba(0,0,0,.4)"/>`+
+  `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="4" fill="url(#pvBrk)" stroke="${pv.hoverC===c.id?'#42a5f5':'#000'}" stroke-width="${pv.hoverC===c.id?2.5:.8}"/>`+
+  `<rect x="${b.x+3}" y="${b.y+1.5}" width="${b.w-6}" height="2.5" rx="1.2" fill="rgba(255,255,255,.13)"/>`;
+ for(let k=0;k<p.n;k++) s+=`<rect x="${wx}" y="${b.y+5+k*g.RH}" width="${hw}" height="${g.RH-16}" rx="3" fill="#0a0a0a" stroke="#333"/>`;
+ s+=`<g>`; for(let k=0;k<p.n;k++){const hy=b.y+7+k*g.RH;s+=`<rect x="${hx}" y="${hy}" width="${hdl}" height="${g.RH-20}" rx="2.5" fill="url(#pvHandle)" stroke="#000"/>`+T8(hx+hdl/2,hy+(g.RH-20)/2+3.5,c.breaker,9.5,'#fff','middle','800')}
+ if(p.n===2) s+=`<rect x="${hx+3}" y="${b.y+g.RH-12}" width="${hdl-6}" height="12" rx="1.5" fill="#2b2b2b" stroke="#000"/>`;
+ s+=a+`</g>`;
+ if(st==='trip') s+=`<rect x="${inner+(p.col===0?-30:6)}" y="${b.y+6}" width="24" height="11" rx="2" fill="#ff6d00"/>`+T8(inner+(p.col===0?-18:18),b.y+14.5,'TRIP',6.5,'#fff','middle','800');
+ // cinta de enmascarar con el nombre
+ const tx=p.col===0?b.x+4:wx+hw+6, tw=b.w/2-hw/2-10;
+ s+=`<g transform="rotate(${p.col===0?-1.5:1.2} ${tx+tw/2} ${b.y+12})"><rect x="${tx}" y="${b.y+5}" width="${tw}" height="15" rx="1" fill="#f1e7c9" stroke="#d6c79c" stroke-width=".5"/>`+
+  T8(tx+tw/2,b.y+15.5,`C${i+1} ${esc(c.name.slice(0,7))}`,8,'#2b2b2b','middle','700','Segoe Print,Comic Sans MS,cursive')+`</g>`;
+ // LED y corriente
+ const led=st==='on'?(hot?'#ff3d00':I>0.05?(r>.8?'#ffb300':'#4caf50'):'#2e5d2f'):st==='trip'?'#ff6d00':'#333';
+ const lx=p.col===0?wx+hw+10:wx-10;
+ if(st!=='trip') s+=`<circle cx="${lx}" cy="${b.y+11}" r="3.2" fill="${led}" ${hot?'class="blink"':''} stroke="#000" stroke-width=".5"/>`;
+ if(sim&&st==='on') s+=T8(p.col===0?wx+hw+16:wx-16,b.y+b.h-6,f1(I)+'A',8,hot?'#ff8a65':r>.8?'#ffcc80':'#9eff9e',p.col===0?'start':'end','700','Consolas,monospace');
+ if(c.dif) s+=`<circle cx="${p.col===0?b.x+12:b.x+b.w-12}" cy="${b.y+b.h-8}" r="5" fill="#fdd835" stroke="#8d6e00"/>`+T8(p.col===0?b.x+12:b.x+b.w-12,b.y+b.h-6,'T',6,'#5d4037','middle','800');
+ return s+'</g>';
+}
+function interiorSVG(g){
+ const {W,H,top,RH,rows,cx,BW,gap}=g, yb=top+rows*RH, nb=yb+34; let s='';
+ // gabinete interno
+ s+=`<rect x="10" y="10" width="${W-20}" height="${H-20}" rx="6" fill="#59616a"/>`;
+ // acometida
+ s+=pline([[110,-14],[110,10],[cx-40,10],[cx-40,24]],'negro',7)+pline([[W-110,-14],[W-110,10],[cx+40,10],[cx+40,24]],'rojo',7);
+ s+=pline([[62,-14],[30,24],[30,nb+5],[44,nb+5]],'blanco',6)+pline([[W-62,-14],[W-30,24],[W-30,nb+5],[W-44,nb+5]],'desnudo',5);
+ s+=T8(110,-18,'Fase A',8,'#333')+T8(W-110,-18,'Fase B',8,'#333')+T8(62,-18,'Neutro',8,'#333')+T8(W-62,-18,'Tierra',8,'#333');
+ // barras
+ s+=`<rect x="${cx-12}" y="100" width="9" height="${yb-96}" fill="url(#pvCu)" stroke="#7a4519" stroke-width=".6"/><rect x="${cx+3}" y="100" width="9" height="${yb-96}" fill="url(#pvCu)" stroke="#7a4519" stroke-width=".6"/>`;
+ s+=`<rect x="${cx-40}" y="100" width="31" height="8" fill="url(#pvCuH)"/><rect x="${cx+9}" y="100" width="31" height="8" fill="url(#pvCuH)"/>`;
+ for(let r=0;r<rows;r++){const y=top+r*RH+RH/2-4, A=r%2===0;s+=`<rect x="${cx-gap-14}" y="${y}" width="${2*gap+28}" height="8" rx="1" fill="url(#pvCuH)" stroke="#7a4519" stroke-width=".5"/><circle cx="${A?cx-7.5:cx+7.5}" cy="${y+4}" r="2" fill="#5d3415"/>`+T8(A?cx-gap-22:cx+gap+22,y+7,A?'A':'B',7,'#ffcc80')}
+ // barras de neutro y tierra
+ const nx1=44,nx2=cx-26,tx1=cx+26,tx2=W-44;
+ s+=`<rect x="${nx1}" y="${nb}" width="${nx2-nx1}" height="11" rx="2" fill="url(#pvSn)" stroke="#5f6770"/>`+T8((nx1+nx2)/2,nb-5,'BARRA DE NEUTRO',7,'#eceff1');
+ s+=`<rect x="${tx1}" y="${nb}" width="${tx2-tx1}" height="11" rx="2" fill="url(#pvCuH)" stroke="#5d3415"/>`+T8((tx1+tx2)/2,nb-5,'BARRA DE TIERRA',7,'#eceff1');
+ for(let x=nx1+8;x<nx2-4;x+=11) s+=`<circle cx="${x}" cy="${nb+5.5}" r="2.4" fill="#cfd4da" stroke="#5f6770" stroke-width=".5"/>`;
+ for(let x=tx1+8;x<tx2-4;x+=11) s+=`<circle cx="${x}" cy="${nb+5.5}" r="2.4" fill="#e0a070" stroke="#5d3415" stroke-width=".5"/>`;
+ s+=pline([[nx2,nb+5],[tx1,nb+5]],'verde',3)+T8(cx,nb+22,'puente',6.5,'#c8e6c9')+T8(cx,nb+30,'equipotencial',6.5,'#c8e6c9');
+ // circuitos ramales
+ const kc=[0,0];
+ state.circuits.forEach(c=>{const p=g.L.pos[c.id]; if(!p) return; const b=brkBox(g,p);
+  for(let k=0;k<p.n;k++){const y=b.y+b.h/(p.n*2)*(2*k+1), gx=p.col===0?18+kc[0]*2.6:W-18-kc[1]*2.6; kc[p.col]++;
+   const col=panelWireColor('C'+c.id+(k?'b':'a'),c.poles==2?(k?state.colors.faseB:state.colors.faseA):(c.fase==='B'?state.colors.faseB:state.colors.faseA));
+   s+=pline([[p.col===0?b.x+4:b.x+b.w-4,y],[gx,y],[gx,-14]],col,2.4)}
+  if(c.dif) s+=`<path d="M${p.col===0?b.x+8:b.x+b.w-8} ${b.y+b.h-4} q ${p.col===0?-30:30} 30 ${p.col===0?-10:10} 60 T ${p.col===0?nx1+20:tx2-20} ${nb}" fill="none" stroke="#f5f5f5" stroke-width="2" stroke-dasharray="1 0"/>`;
+ });
+ let ni=0,ti=0; state.circuits.forEach(c=>{if(c.poles!=2){const x=nx1+8+ni*11;if(x<nx2-4)s+=pline([[x,nb+5],[x,H-4]],'blanco',2);ni++} const x=tx1+8+ti*11;if(x<tx2-4)s+=pline([[x,nb+5],[x,H-4]],'verde',2);ti++});
+ return s;
+}
+function pvSVG(){
+ const g=pvGeom(),{W,H,top,RH,rows,cx,BW,gap}=g, lvl=pv.level;
+ let s=`<svg id="pvsvg" viewBox="-14 -26 ${W+28} ${H+34}" preserveAspectRatio="xMidYMid meet">`;
+ s+=`<rect x="5" y="7" width="${W}" height="${H}" rx="10" fill="rgba(0,0,0,.25)"/><rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="url(#pvBox)" stroke="#5d656e" stroke-width="1.5"/>`;
+ [62,110,W-110,W-62].forEach(x=>s+=`<circle cx="${x}" cy="0" r="8" fill="#78828c" stroke="#555e67"/>`);
+ if(lvl==='interior') s+=interiorSVG(g);
+ else {
+  s+=`<rect x="12" y="12" width="${W-24}" height="${H-24}" rx="6" fill="url(#pvCover)" stroke="#8a939c"/>`;
+  [[22,22],[W-22,22],[22,H-22],[W-22,H-22]].forEach(([x,y])=>s+=screw(x,y).replace(/r="1.3"/,'r="4"'));
+  s+=`<rect x="${cx-78}" y="16" width="156" height="90" rx="4" fill="#20252a"/>`;
+  s+=`<rect x="${cx-gap-BW-4}" y="${top-4}" width="${BW+8}" height="${rows*RH+2}" rx="3" fill="#20252a"/><rect x="${cx+gap-4}" y="${top-4}" width="${BW+8}" height="${rows*RH+2}" rx="3" fill="#20252a"/>`;
+  for(let r=0;r<rows;r++){s+=T8(cx-gap-BW-12,top+r*RH+RH/2+3,2*r+1,9,'#5f6b77','end','700')+T8(cx+gap+BW+12,top+r*RH+RH/2+3,2*r+2,9,'#5f6b77','start','700')+T8(cx,top+r*RH+RH/2+3,r%2===0?'A':'B',8,'#90a4ae')}
+  for(let r=0;r<rows;r++)for(let col=0;col<2;col++)if(!g.L.occ.has(r+','+col)){const b=brkBox(g,{row:r,col,n:1});s+=`<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="3" fill="url(#pvCover)" stroke="#9aa3ac"/><rect x="${b.x+b.w/2-10}" y="${b.y+b.h/2-2}" width="20" height="4" rx="2" fill="#b0b9c2"/>`}
+  s+=warnSticker(70,H-48,.9)+T8(cx+40,H-58,'120/240 V ~ 60 Hz',9,'#455a64','middle','700')+T8(cx+40,H-44,'Identifique cada circuito',8,'#607d8b')+T8(cx+40,H-32,'(RETIE – señalización)',7,'#90a4ae','middle','500');
+ }
+ s+=mainSVG(g);
+ state.circuits.forEach((c,i)=>s+=breakerSVG(c,g,i));
+ s+=`<rect id="pvTarget" x="0" y="0" width="0" height="0" rx="4" fill="rgba(66,165,245,.25)" stroke="#1e88e5" stroke-width="2" stroke-dasharray="5 3" style="pointer-events:none;display:none"/>`;
+ if(lvl==='door'||pv.doorAnim){
+  const an=pv.doorAnim?`<animateTransform id="pvDoorAnim" attributeName="transform" type="scale" from="${pv.doorAnim==='open'?'1 1':'.02 1'}" to="${pv.doorAnim==='open'?'.02 1':'1 1'}" dur=".4s" begin="indefinite" fill="freeze"/>`:'';
+  s+=`<g transform="translate(6 0)"><g data-pvact="open" style="cursor:pointer">${an}<rect x="0" y="6" width="${W-12}" height="${H-12}" rx="8" fill="url(#pvDoor)" stroke="#6b737c" stroke-width="1.2"/>`+
+   `<rect x="-4" y="60" width="8" height="34" rx="2" fill="#8a939c"/><rect x="-4" y="${H-94}" width="8" height="34" rx="2" fill="#8a939c"/>`+
+   `<rect x="${W-46}" y="${H/2-30}" width="18" height="60" rx="6" fill="#37474f" stroke="#1c262b"/><circle cx="${W-37}" cy="${H/2+14}" r="3.5" fill="#cfd8dc"/>`+
+   `<rect x="${W/2-110}" y="50" width="208" height="46" rx="4" fill="#eceff1" stroke="#90a4ae"/>`+T8(W/2-6,70,'TABLERO DE DISTRIBUCIÓN',12,'#263238','middle','800')+T8(W/2-6,86,`${state.circuits.length} circuitos · 120/240 V · Totalizador ${state.mainA} A`,8.5,'#546e7a','middle','600')+
+   warnSticker(W/2-6,H/2-10,1.6)+
+   [...Array(6)].map((_,k)=>`<rect x="${W/2-60}" y="${H-90+k*9}" width="108" height="4" rx="2" fill="#9aa3ac"/>`).join('')+
+   T8(W/2-6,H-22,'Clic para abrir la tapa',10,'#455a64','middle','700')+`</g></g>`;
+ }
+ return s+'</svg>';
+}
+function pvInfoHTML(){
+ const sim=mode==='sim'?simRes:null;
+ let h=`<div class="lcd"><div class="lcdt">MEDIDOR DE ENERGÍA</div>`;
+ if(sim){const kW=sim.W/1000;h+=`<div class="lcdv">${kW.toFixed(2)} <small>kW</small></div><div class="lcdg"><span>Fase A</span><b>${sim.A.toFixed(1)} A</b><span>Fase B</span><b>${sim.B.toFixed(1)} A</b><span>Neutro</span><b>${Math.abs(sim.nA-sim.nB).toFixed(1)} A</b><span>Costo / hora</span><b>$ ${f0(kW*(state.tarifa||0))}</b></div>`}
+ else h+=`<div class="lcdoff">Pulse <b>▶ Simular</b> para ver el consumo y las corrientes en vivo.</div>`;
+ h+=`</div><div class="pvmain"><span>Totalizador</span><select id="pvMainA">${[30,40,50,60,70,80,100,125].map(a=>`<option ${a==state.mainA?'selected':''}>${a}</option>`).join('')}</select><span>A</span><span class="pvs ${state.mainTrip?'trip':state.mainOn!==false?'on':'off'}" style="margin-left:auto">${state.mainTrip?'DISPARADO':state.mainOn!==false?'ON':'OFF'}</span></div>`;
+ state.circuits.forEach((c,i)=>{
+  const on=c.on&&!c.tripped&&state.mainOn!==false, I=sim&&on?(sim.amps[c.id]||0):0, r=I/c.breaker, col=r>1?'#e53935':r>.8?'#fb8c00':'#43a047', hot=(ovAcc[c.id]||0)>0;
+  h+=`<div class="pvrow ${pv.hoverC===c.id||settings.viewC===c.id?'hl':''} ${hot?'hotrow':''}" data-pr="${c.id}" title="Clic: ver solo este circuito en el plano"><span class="chip" style="background:${CCOL[i%CCOL.length]}">C${i+1}</span>
+   <div class="pvn"><b>${esc(c.name)}</b><small>${c.poles==2?'2P · A-B':'Fase '+c.fase} · ${c.breaker} A · ${c.gauge} AWG${c.dif?' · dif.':''}</small>${sim?`<div class="bar"><i style="width:${Math.min(100,r*100)}%;background:${col}"></i></div>`:''}</div>
+   <span class="pvs ${c.tripped?'trip':c.on?'on':'off'} ${hot?'blink':''}">${c.tripped?'TRIP':c.on?(sim&&on?f1(I)+' A':'ON'):'OFF'}</span></div>`;
+ });
+ if(sim) h+=`<div class="row" style="grid-template-columns:1fr 90px;margin-top:8px"><label>Tarifa ($/kWh)</label><input id="pvTar" type="number" value="${state.tarifa}"></div>`;
+ h+=`<div class="pvtip"><b>Cómo usar:</b><br>• Clic en un taco: subir / bajar.<br>• Arrastre un taco a otra posición: la fila define la fase (A o B).<br>• En ▶ Simular: clic en un tomacorriente para conectar aparatos; si se pasa de la capacidad, el taco se calienta y se dispara.<br>• Un taco disparado se rearma bajándolo a OFF y subiéndolo a ON.</div>`;
+ return h;
+}
+function renderPview(){
+ if(!pv.open) return;
+ const wrap=$('#pvSvgWrap'); wrap.innerHTML=pvSVG();
+ $('#pvInfo').innerHTML=pvInfoHTML();
+ document.querySelectorAll('[data-pvl]').forEach(b=>b.classList.toggle('on',b.dataset.pvl===pv.level));
+ const an=document.getElementById('pvAnim'); if(an&&an.beginElement) an.beginElement(); pv.anim=null;
+ const da=document.getElementById('pvDoorAnim'); if(da&&da.beginElement){da.beginElement(); const kind=pv.doorAnim; pv.doorAnim=null; setTimeout(()=>{if(kind==='open')renderPview()},420)}
+ const mA=$('#pvMainA'); if(mA) mA.onchange=e=>upd(()=>state.mainA=+e.target.value);
+ const tar=$('#pvTar'); if(tar) tar.onchange=e=>{state.tarifa=+e.target.value;changed()};
+ $('#pvInfo').querySelectorAll('[data-pr]').forEach(el=>{el.onclick=()=>setViewC(settings.viewC===el.dataset.pr?'':el.dataset.pr);el.onmouseenter=()=>pvHover(el.dataset.pr);el.onmouseleave=()=>pvHover('')});
+}
+function pvHover(cid){
+ if(pv.hoverC===cid) return; pv.hoverC=cid;
+ const v=state.view; $('#layer').innerHTML=worldSVG({ui:true,grid:settings.grid,labels:settings.showLabels&&(v.z>.45||mode==='wire'),sim:simRes});
+ document.querySelectorAll('#pvsvg [data-pb]').forEach(el=>{const r=el.querySelector('rect:nth-of-type(2)');if(r){r.setAttribute('stroke',el.dataset.pb===cid?'#42a5f5':'#000');r.setAttribute('stroke-width',el.dataset.pb===cid?2.5:.8)}});
+ document.querySelectorAll('#pvInfo [data-pr]').forEach(el=>el.classList.toggle('hl',el.dataset.pr===cid||settings.viewC===el.dataset.pr));
+}
+function pvPoint(e){const sv=$('#pvsvg');const pt=sv.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(sv.getScreenCTM().inverse())}
+$('#pvSvgWrap').addEventListener('pointerdown',e=>{
+ if(e.button!==0) return;
+ const act=e.target.closest('[data-pvact]'); if(act){pv.level='cover';pv.doorAnim='open';sfx('clack');renderPview();return}
+ if(e.target.closest('[data-pmain]')){toggleMain();return}
+ const b=e.target.closest('[data-pb]'); if(!b) return;
+ const q=pvPoint(e); pv.drag={cid:b.dataset.pb,el:b,sx:q.x,sy:q.y,moved:false,cx:e.clientX,cy:e.clientY};
+ $('#pvSvgWrap').setPointerCapture(e.pointerId); e.preventDefault();
+});
+$('#pvSvgWrap').addEventListener('pointermove',e=>{
+ const d=pv.drag;
+ if(!d){const b=e.target.closest&&e.target.closest('[data-pb]');pvHover(b?b.dataset.pb:'');return}
+ if(!d.moved&&Math.hypot(e.clientX-d.cx,e.clientY-d.cy)<6) return;
+ d.moved=true; const q=pvPoint(e), g=pvGeom(), c=circ(d.cid), n=c.poles==2?2:1;
+ d.el.setAttribute('transform',`translate(${q.x-d.sx} ${q.y-d.sy})`); d.el.style.opacity=.8; d.el.style.cursor='grabbing';
+ const col=q.x<g.cx?0:1, row=clamp(Math.floor((q.y-g.top)/g.RH),0,g.rows-n); d.target=row*2+col;
+ const b=brkBox(g,{row,col,n}), t=$('#pvTarget'); Object.entries({x:b.x-3,y:b.y-3,width:b.w+6,height:b.h+6}).forEach(([k,v])=>t.setAttribute(k,v)); t.style.display='';
+});
+$('#pvSvgWrap').addEventListener('pointerup',e=>{
+ const d=pv.drag; pv.drag=null; if(!d) return;
+ if(!d.moved){toggleBreaker(d.cid);return}
+ const c=circ(d.cid), L=panelLayout(), old=L.pos[c.id].slot, tgt=d.target;
+ if(tgt==null||tgt===old){renderPview();return}
+ pushUndo();
+ const n=c.poles==2?2:1, cells=[]; for(let k=0;k<n;k++) cells.push(((tgt>>1)+k)+','+(tgt&1));
+ state.circuits.forEach(o=>{if(o===c)return;const p=L.pos[o.id];for(let k=0;k<p.n;k++)if(cells.includes((p.row+k)+','+p.col)){o.slot=old;return}});
+ c.slot=tgt; sfx('clack'); changed();
+ const p=panelLayout().pos[c.id]; toast(`${cName(c.id)} movido a la posición ${p.slot+1}${c.poles==2?'':' · ahora en fase '+c.fase}.`);
+});
+$('#pvSvgWrap').addEventListener('pointerleave',()=>{if(!pv.drag)pvHover('')});
+document.querySelectorAll('[data-pvl]').forEach(b=>b.onclick=()=>{const was=pv.level;pv.level=b.dataset.pvl;if(was==='door'&&pv.level!=='door')pv.doorAnim='open';else if(pv.level==='door'&&was!=='door')pv.doorAnim='close';sfx('clack');renderPview()});
+$('#pvClose').onclick=closePview;
+(()=>{const head=$('#pvHead'),win=$('#pview');let st=null;
+ head.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const r=win.getBoundingClientRect(),pr=$('#wrap').getBoundingClientRect();st={x:e.clientX,y:e.clientY,l:r.left-pr.left,t:r.top-pr.top};head.setPointerCapture(e.pointerId)});
+ head.addEventListener('pointermove',e=>{if(!st)return;win.style.right='auto';win.style.left=Math.max(0,st.l+e.clientX-st.x)+'px';win.style.top=Math.max(0,st.t+e.clientY-st.y)+'px'});
+ head.addEventListener('pointerup',()=>st=null);})();
+// sobrecarga térmica (curva inversa): cuanto mayor la sobrecorriente, más rápido se dispara
+let lastTick=performance.now();
+setInterval(()=>{
+ const now=performance.now(), dt=Math.min(1,(now-lastTick)/1000); lastTick=now;
+ if(mode!=='sim'||!simRes) return;
+ const trips=[]; let flip=false;
+ const step=(key,I,In)=>{const r=I/In, prev=ovAcc[key]||0; if(r>1.0){ovAcc[key]=prev+dt/clamp(5/(r*r-1),.4,45);if(ovAcc[key]>=1)trips.push([key,I,In])}else ovAcc[key]=Math.max(0,prev-dt/6); if((prev>0)!==((ovAcc[key]||0)>0))flip=true};
+ state.circuits.forEach(c=>{if(c.on&&!c.tripped&&state.mainOn!==false)step(c.id,simRes.amps[c.id]||0,c.breaker);else ovAcc[c.id]=0});
+ if(state.mainOn!==false) step('main',Math.max(simRes.A,simRes.B),state.mainA||60);
+ if(trips.length){
+  trips.forEach(([k,I,In])=>{ovAcc[k]=0;if(k==='main'){state.mainOn=false;state.mainTrip=true;toast(`¡Sobrecarga en el TOTALIZADOR! ${f1(I)} A en una fase con totalizador de ${In} A. Se disparó para proteger la acometida.`,true)}
+   else{const c=circ(k);c.on=false;c.tripped=true;toast(`¡Sobrecarga en ${cName(k)} (${c.name})! ${f1(I)} A en un taco de ${In} A: se calentó y se disparó para proteger el cable ${c.gauge} AWG. Desconecte aparatos y rearme el taco (OFF → ON).`,true)}});
+  sfx('trip'); changed();
+ } else if(flip) render();
+},250);
+
+// =====================================================================
 //  Menú e inicio
 // =====================================================================
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
@@ -1520,7 +1861,7 @@ document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;
  if(a==='undo')undo(); if(a==='redo')redo(); if(a==='rot')rotSel(); if(a==='del')delSel();
- if(a==='dup')duplicate();
+ if(a==='dup')duplicate(); if(a==='pview')(pv.open?closePview():openPview());
  if(a==='auto'){const ids=[...sel].filter(k=>k[0]==='d').map(k=>k.slice(2));if(ids.length)autoConnect(ids);else if(confirm('No hay nada seleccionado.\n\n¿Cablear automáticamente TODOS los aparatos que aún no tienen cables, espacio por espacio?'))autoWireAll()}
  if(a==='fit')fitView();
  if(a==='zin'||a==='zout'){const R=svg.getBoundingClientRect(),v=state.view,f=a==='zin'?1.25:.8,mx=R.width/2,my=R.height/2;v.x=mx-(mx-v.x)*f;v.y=my-(my-v.y)*f;v.z*=f;render()}});

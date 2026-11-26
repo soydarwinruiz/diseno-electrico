@@ -24,6 +24,16 @@ No requiere internet ni instalación.
 - **Revisión RETIE / NTC 2050**, cuadro de cargas, balance de fases y lista de materiales (exportable a Excel).
 - Guardar/abrir proyectos, exportar imagen, imprimir / PDF.
 
+### Tablero realista e interactivo
+- Vista del tablero con **tapa** (señal de riesgo eléctrico RETIE), **frente** con los tacos rotulados y **interior** con barras de cobre, barra de neutro, barra de tierra, puente equipotencial y acometida.
+- Clic en un taco para subirlo/bajarlo; un taco disparado muestra **TRIP** y se rearma OFF → ON.
+- Arrastre un taco a otra fila: la **fase A/B** cambia según la posición, como en un tablero real.
+- **Medidor de energía** en vivo: kW, corriente en fase A, fase B y neutro, costo por hora.
+- En simulación: clic en tomacorrientes para **conectar aparatos** (TV, licuadora, plancha…), ducha y estufa encendibles. Si se excede la capacidad, los cables se ponen naranja y el taco **se dispara por sobrecarga**.
+- Sonidos de interruptores, tacos y timbre (se pueden silenciar).
+
+![Tablero interactivo](docs/tablero-interactivo.png)
+
 ### Facilidad de uso
 - Interruptores y tomacorrientes **se pegan al muro** y miran hacia el espacio (Alt: ubicación libre).
 - **Clic derecho** para menú contextual: rotar, duplicar, asignar circuito, cablear…
