@@ -535,6 +535,8 @@ function roomWalls(){
  return out.map(s=>s.ax==='h'?{...s,x1:s.a,y1:s.c,x2:s.b,y2:s.c,auto:true}:{...s,x1:s.c,y1:s.a,x2:s.c,y2:s.b,auto:true});
 }
 const allWalls=()=>[...RW,...state.walls];
+const planMode=()=>settings.ptab==='plano';
+const rectOverlap=(a,b)=>Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)>1&&Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)>1;
 function roomOf(d){let best=null;for(const r of state.rooms){if(d.x>=r.x&&d.x<=r.x+r.w&&d.y>=r.y&&d.y<=r.y+r.h){if(!best||r.w*r.h<best.w*best.h)best=r}}return best}
 const devsIn=r=>state.devices.filter(d=>roomOf(d)===r);
 
@@ -670,7 +672,8 @@ function worldSVG(o){
  let s='';
  if(o.grid) s+=`<rect x="-5000" y="-5000" width="15000" height="15000" fill="url(#gridB)"/>`;
  if(state.bg) s+=`<image href="${state.bg.src}" x="${state.bg.x}" y="${state.bg.y}" width="${state.bg.w}" height="${state.bg.h}" opacity="${state.bg.op}" preserveAspectRatio="none" style="pointer-events:none"/>`;
- state.rooms.forEach(r=>{s+=`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${ROOMC[r.type]||'#f5f5f5'}" opacity="${state.bg?.55:1}" ${r.autoWalls===false?'stroke="#c3ccd6" stroke-width="1" stroke-dasharray="6 4"':''} style="pointer-events:none"/>`});
+ const grab=o.ui&&planMode()&&mode==='select';
+ state.rooms.forEach(r=>{s+=`<rect ${grab?`data-hit="room" data-id="${r.id}"`:''} x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${ROOMC[r.type]||'#f5f5f5'}" opacity="${state.bg?.55:1}" ${r.autoWalls===false?'stroke="#c3ccd6" stroke-width="1" stroke-dasharray="6 4"':''} style="${grab?'cursor:move':'pointer-events:none'}"/>`});
  RW.forEach((w,i)=>{s+=`<line ${o.ui?`data-hit="rwall" data-i="${i}"`:''} x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}" stroke="#37424d" stroke-width="${w.th}" stroke-linecap="square" style="cursor:${o.ui?(w.ax==='h'?'ns-resize':'ew-resize'):'default'}"/>`});
  if(settings.dims!==false) s+=dimsSVG();
  let labels='';
@@ -730,7 +733,8 @@ function renderOv(){
   const [t,id]=k.split(':');
   if(t==='d'){const d=dev(id); if(d) s+=selBoxSVG(d)}
   if(t==='r'){const r=state.rooms.find(r=>r.id===id); if(r){s+=`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="rgba(30,136,229,.06)" stroke="#1e88e5" stroke-width="${2/z}" style="pointer-events:none"/>`;
-   [[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h]].forEach((p,i)=>s+=handle(p[0],p[1],`data-hit="rh" data-id="${r.id}" data-c="${i}"`))}}
+   [[r.x,r.y],[r.x+r.w,r.y],[r.x+r.w,r.y+r.h],[r.x,r.y+r.h],[r.x+r.w/2,r.y],[r.x+r.w,r.y+r.h/2],[r.x+r.w/2,r.y+r.h],[r.x,r.y+r.h/2]].forEach((p,i)=>s+=handle(p[0],p[1],`data-hit="rh" data-id="${r.id}" data-c="${i}" style="cursor:${['nwse','nesw','nwse','nesw','ns','ew','ns','ew'][i]}-resize"`))
+   s+=`<text x="${r.x+r.w/2}" y="${r.y-10/z}" font-size="${12/z}" text-anchor="middle" fill="#1565c0" font-weight="700" style="pointer-events:none">${f1(r.w/100)} m</text><text x="${r.x+r.w+8/z}" y="${r.y+r.h/2}" font-size="${12/z}" fill="#1565c0" font-weight="700" style="pointer-events:none">${f1(r.h/100)} m</text>`}}
   if(t==='l'){const w=state.walls.find(w=>w.id===id); if(w){s+=`<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}" stroke="#1e88e5" stroke-width="${w.th+4}" opacity=".35" style="pointer-events:none"/>`+
    handle(w.x1,w.y1,`data-hit="wh" data-id="${w.id}" data-i="0"`)+handle(w.x2,w.y2,`data-hit="wh" data-id="${w.id}" data-i="1"`)+
    `<text x="${(w.x1+w.x2)/2}" y="${(w.y1+w.y2)/2-w.th}" font-size="${11/z}" text-anchor="middle" fill="#1565c0" font-weight="700">${f1(Math.hypot(w.x2-w.x1,w.y2-w.y1)/100)} m</text>`}}
@@ -739,8 +743,10 @@ function renderOv(){
    w.pts.forEach((p,i)=>s+=handle(p[0],p[1],`data-hit="vtx" data-id="${w.id}" data-i="${i}"`,'circle'))}}
  });
  let pv='';
+ if(drag&&drag.t==='move'&&drag.guides){drag.guides.forEach(g=>{pv+=g.x!=null?`<line x1="${g.x}" y1="-5000" x2="${g.x}" y2="5000" stroke="#e91e63" stroke-width="${1.5/z}" stroke-dasharray="${6/z} ${4/z}"/>`:`<line x1="-5000" y1="${g.y}" x2="5000" y2="${g.y}" stroke="#e91e63" stroke-width="${1.5/z}" stroke-dasharray="${6/z} ${4/z}"/>`});
+  if(drag.overlap) Object.keys(drag.orig.r).forEach(id=>{const r=state.rooms.find(x=>x.id===id);if(r)pv+=`<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="rgba(229,57,53,.18)" stroke="#e53935" stroke-width="${3/z}"/><text x="${r.x+r.w/2}" y="${r.y+r.h/2+30}" font-size="${13/z}" text-anchor="middle" fill="#c62828" font-weight="700">Se superpone con otro espacio</text>`})}
  if(drag&&drag.t==='rsel'){const a=drag.a,b=drag.b;pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${Math.abs(b.x-a.x)}" height="${Math.abs(b.y-a.y)}" fill="rgba(30,136,229,.08)" stroke="#1e88e5" stroke-width="${1/z}" stroke-dasharray="${4/z}"/>`}
- if(drag&&drag.t==='room'){const a=drag.a,b=drag.b,w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y);pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${w}" height="${h}" fill="rgba(255,193,7,.15)" stroke="#f9a825" stroke-width="${2/z}"/><text x="${(a.x+b.x)/2}" y="${(a.y+b.y)/2}" font-size="${13/z}" text-anchor="middle" fill="#e65100" font-weight="700">${f1(w/100)} × ${f1(h/100)} m</text>`}
+ if(drag&&drag.t==='room'){const a=drag.a,b=drag.b,w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y),ov=state.rooms.some(r=>rectOverlap({x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w,h},r));pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${w}" height="${h}" fill="${ov?'rgba(229,57,53,.15)':'rgba(255,193,7,.15)'}" stroke="${ov?'#e53935':'#f9a825'}" stroke-width="${2/z}"/><text x="${(a.x+b.x)/2}" y="${(a.y+b.y)/2}" font-size="${13/z}" text-anchor="middle" fill="#e65100" font-weight="700">${f1(w/100)} × ${f1(h/100)} m</text>`}
  if(mode==='wall'&&wallDraft){const q=snapWall(mouseW,false);pv+=`<line x1="${wallDraft.x}" y1="${wallDraft.y}" x2="${q.x}" y2="${q.y}" stroke="#3e4a55" stroke-width="15" opacity=".5" stroke-linecap="square"/><text x="${(wallDraft.x+q.x)/2}" y="${(wallDraft.y+q.y)/2-14}" font-size="${12/z}" text-anchor="middle" fill="#1565c0" font-weight="700">${f1(dist(wallDraft,q)/100)} m</text>`}
  if(mode==='wall'){const q=snapWall(mouseW,false);pv+=`<circle cx="${q.x}" cy="${q.y}" r="${4/z}" fill="#1e88e5"/>`}
  if(mode==='wire'&&wireDraft){const a=dev(wireDraft.a.d); const P=[tpos(a,wireDraft.a.t),...wireDraft.pts.map(p=>({x:p[0],y:p[1]}))]; const last=P[P.length-1]; const m=snapP(mouseW); const q=Math.abs(m.x-last.x)>Math.abs(m.y-last.y)?{x:m.x,y:last.y}:{x:last.x,y:m.y}; P.push(q);
@@ -766,10 +772,10 @@ function thumb(type,size=40){
 }
 function buildPalette(){
  const groups={}; Object.entries(CAT).forEach(([k,c])=>{(groups[c.g]=groups[c.g]||[]).push(k)});
- const PLAN=['Arquitectura','Muebles'], tab=settings.ptab||(state.devices.some(isElec)?'elec':'plano');
+ const PLAN=['Arquitectura','Muebles'], tab=settings.ptab=settings.ptab||(state.devices.some(isElec)?'elec':'plano');
  let h=`<div class="ptabs"><button data-pt="plano" class="${tab==='plano'?'on':''}">🏠 Plano</button><button data-pt="elec" class="${tab==='elec'?'on':''}">⚡ Eléctrico</button></div>`;
  if(tab==='plano'){
-  h+=`<h4>1. Espacios</h4><div class="note" style="margin:2px 0 6px">Elija el tipo y arrastre un rectángulo en el plano. Los muros y las medidas se dibujan solos. Arrastre un muro para moverlo.</div><div class="rchips">${Object.entries(ROOMT).map(([k,v])=>`<button data-room="${k}" style="background:${ROOMC[k]}">${v.split(' /')[0]}</button>`).join('')}</div>`;
+  h+=`<h4>1. Espacios</h4><div class="note" style="margin:2px 0 6px">• Elija el tipo y arrastre un rectángulo.<br>• <b>Arrastre un espacio</b> para moverlo: se ancla solo al vecino (línea rosada).<br>• Arrastre un <b>muro</b> o los cuadritos azules para cambiar medidas.<br>• Alt: mover sin imán.</div><div class="rchips">${Object.entries(ROOMT).map(([k,v])=>`<button data-room="${k}" style="background:${ROOMC[k]}">${v.split(' /')[0]}</button>`).join('')}</div>`;
   h+=`<div class="btnrow" style="margin:6px 0"><button class="btn" data-pmode="wall">🧱 Muro suelto</button></div>`;
   h+=`<h4>Plantillas</h4>${Object.entries(TEMPLATES).map(([k,t])=>`<div class="pi" data-tpl="${k}" title="Insertar plantilla">${tplThumb(t)}<span>${esc(t.n)}<br><small style="color:var(--mu)">${t.d}</small></span></div>`).join('')}`;
  }
@@ -786,7 +792,7 @@ function buildPalette(){
  $('#psearch').onkeydown=e=>{if(e.key==='Enter'){const q=norm(e.target.value),vis=[...document.querySelectorAll('#palette .pi')].filter(x=>x.style.display!=='none'&&x.parentElement.style.display!=='none');const el=vis.find(x=>norm(CAT[x.dataset.type].n).includes(q))||vis[0];if(el)el.click()}if(e.key==='Escape'){e.target.value='';e.target.oninput({target:e.target});e.target.blur()}};
 }
 const HINTS={
- select:'Clic: seleccionar · Arrastrar: mover · Shift+clic o recuadro: varios · Clic derecho: menú · Flechas: mover fino · Ctrl+C/V/D: copiar/pegar/duplicar · Rueda: zoom · Espacio+arrastrar: desplazar',
+ select:'Plano: arrastre un espacio para moverlo (se ancla a los vecinos) y sus muros para cambiar medidas · Clic: seleccionar · Arrastrar: mover · Shift+clic o recuadro: varios · Clic derecho: menú · Flechas: mover fino · Ctrl+C/V/D: copiar/pegar/duplicar · Rueda: zoom · Espacio+arrastrar: desplazar',
  pan:'Arrastre para desplazar la vista. Rueda para acercar/alejar.',
  wall:'Clic para iniciar el muro y clic en cada esquina · Clic dos veces en el mismo punto, clic derecho o Esc para terminar · Shift: ángulo libre',
  room:'Arrastre para dibujar el espacio (se alinea con los espacios vecinos). Los muros y medidas aparecen solos. Elija el tipo en la paleta izquierda (pestaña Plano).',
@@ -796,7 +802,7 @@ const HINTS={
 };
 function setMode(m){
  mode=m; wireDraft=null; wallDraft=null;
- if(m==='sim'&&getPanel()&&!pv.autoOpened){pv.autoOpened=true;pv.open=true;$('#pview').classList.add('show')}
+ if(m==='sim'&&getPanel()&&!pv.autoOpened&&!pv.open){pv.autoOpened=true;setTimeout(()=>toast('Consejo: pulse 🗄 Tablero (tecla T) para ver los tacos, el medidor y las corrientes mientras simula.'),50)}
  if(m!=='place') placeType=null;
  if(m==='room'&&!settings.roomType) settings.roomType='alcoba';
  document.querySelectorAll('#palette [data-room]').forEach(b=>b.classList.toggle('on',m==='room'&&settings.roomType===b.dataset.room));
@@ -842,9 +848,9 @@ svg.addEventListener('pointerdown',e=>{
  if(mode==='wire') return wireClick(H,ps);
  selectDown(e,H,p,ps);
 });
-function snapRoom(p){
+function snapRoom(p,except){
  const q=snapP(p), tol=14/state.view.z; let bx=tol,by=tol;
- state.rooms.forEach(r=>{[r.x,r.x+r.w].forEach(x=>{const d=Math.abs(p.x-x);if(d<bx){bx=d;q.x=x}});[r.y,r.y+r.h].forEach(y=>{const d=Math.abs(p.y-y);if(d<by){by=d;q.y=y}})});
+ state.rooms.forEach(r=>{if(r===except)return;[r.x,r.x+r.w].forEach(x=>{const d=Math.abs(p.x-x);if(d<bx){bx=d;q.x=x}});[r.y,r.y+r.h].forEach(y=>{const d=Math.abs(p.y-y);if(d<by){by=d;q.y=y}})});
  return q;
 }
 function selectDown(e,H,p,ps){
@@ -867,11 +873,18 @@ function selectDown(e,H,p,ps){
  if(!e.shiftKey) sel.clear();
  drag={t:'rsel',a:p,b:p,add:e.shiftKey}; render(); renderSide();
 }
+function roomContents(r){
+ // aparatos, muebles, puertas y ventanas que pertenecen al espacio (dentro o sobre su borde)
+ const inR=(x,y,m)=>x>=r.x-m&&x<=r.x+r.w+m&&y>=r.y-m&&y<=r.y+r.h+m;
+ return state.devices.filter(d=>{const C=CAT[d.type];if(d.type==='tablero'&&!inR(d.x,d.y,0))return false;
+  if(C.open) return inR(d.x,d.y,8)&&!state.rooms.some(o=>o!==r&&roomOf(d)===o&&!inR(d.x,d.y,0));
+  return roomOf(d)===r||(WALLMOUNT.includes(d.type)&&inR(d.x,d.y,0))});
+}
 function capture(){
  const o={d:{},r:{},l:{},w:{}};
  sel.forEach(k=>{const [t,id]=k.split(':');
   if(t==='d'){const d=dev(id);if(d)o.d[id]={x:d.x,y:d.y}}
-  if(t==='r'){const r=state.rooms.find(r=>r.id===id);if(r)o.r[id]={x:r.x,y:r.y}}
+  if(t==='r'){const r=state.rooms.find(r=>r.id===id);if(r){o.r[id]={x:r.x,y:r.y,w:r.w,h:r.h};roomContents(r).forEach(d=>{if(!o.d[d.id])o.d[d.id]={x:d.x,y:d.y,inRoom:true}})}}
   if(t==='l'){const w=state.walls.find(w=>w.id===id);if(w)o.l[id]={...w}}});
  state.wires.forEach(w=>{if(o.d[w.a.d]&&o.d[w.b.d])o.w[w.id]=w.pts.map(p=>[...p])});
  return o;
@@ -884,17 +897,38 @@ window.addEventListener('pointermove',e=>{
  const ps=snapP(p);
  switch(drag.t){
   case 'pan': state.view.x=drag.vx+e.clientX-drag.cx; state.view.y=drag.vy+e.clientY-drag.cy; $('#world').setAttribute('transform',`translate(${state.view.x} ${state.view.y}) scale(${state.view.z})`); return;
-  case 'move': {const dx=ps.x-drag.start.x, dy=ps.y-drag.start.y; if(!dx&&!dy&&!drag.moved) return; drag.moved=true; const o=drag.orig;
+  case 'move': {let dx=ps.x-drag.start.x, dy=ps.y-drag.start.y; if(!dx&&!dy&&!drag.moved) return; drag.moved=true; const o=drag.orig;
+   drag.guides=[]; drag.overlap=false;
+   const rids=Object.keys(o.r);
+   if(rids.length){
+    // caja del grupo de espacios movidos (sin imán todavía)
+    const rawdx=p.x-drag.raw.x, rawdy=p.y-drag.raw.y, B=rids.map(id=>o.r[id]);
+    const gx1=Math.min(...B.map(r=>r.x)),gy1=Math.min(...B.map(r=>r.y)),gx2=Math.max(...B.map(r=>r.x+r.w)),gy2=Math.max(...B.map(r=>r.y+r.h));
+    dx=sn(rawdx); dy=sn(rawdy);
+    if(!e.altKey){
+     const others=state.rooms.filter(r=>!o.r[r.id]), tol=22/state.view.z;
+     let bx=tol,by=tol,sx=null,sy=null,gxl=null,gyl=null;
+     others.forEach(r=>{
+      const near=Math.min(gy2+rawdy,r.y+r.h)-Math.max(gy1+rawdy,r.y)>-tol*2, nearX=Math.min(gx2+rawdx,r.x+r.w)-Math.max(gx1+rawdx,r.x)>-tol*2;
+      [[gx1,r.x],[gx1,r.x+r.w],[gx2,r.x],[gx2,r.x+r.w]].forEach(([g,t])=>{const d=Math.abs(g+rawdx-t);if(d<bx&&(near||d<2)){bx=d;sx=t-g;gxl=t}});
+      [[gy1,r.y],[gy1,r.y+r.h],[gy2,r.y],[gy2,r.y+r.h]].forEach(([g,t])=>{const d=Math.abs(g+rawdy-t);if(d<by&&(nearX||d<2)){by=d;sy=t-g;gyl=t}});
+     });
+     if(sx!=null){dx=sx;drag.guides.push({x:gxl})} if(sy!=null){dy=sy;drag.guides.push({y:gyl})}
+     drag.overlap=B.some(b=>others.some(r=>rectOverlap({x:b.x+dx,y:b.y+dy,w:b.w,h:b.h},r)));
+    }
+   }
    const ids=Object.keys(o.d), one=ids.length===1&&!Object.keys(o.r).length&&!Object.keys(o.l).length?dev(ids[0]):null;
    const ws=one&&wallSnap(one.type,{x:o.d[one.id].x+p.x-drag.raw.x,y:o.d[one.id].y+p.y-drag.raw.y});
-   if(ws){one.x=ws.x;one.y=ws.y;one.r=ws.r} else for(const id in o.d){const d=dev(id);d.x=o.d[id].x+dx;d.y=o.d[id].y+dy}
+   if(ws){one.x=ws.x;one.y=ws.y;one.r=ws.r} else for(const id in o.d){const d=dev(id);if(d){d.x=o.d[id].x+dx;d.y=o.d[id].y+dy}}
    for(const id in o.r){const r=state.rooms.find(r=>r.id===id);r.x=o.r[id].x+dx;r.y=o.r[id].y+dy}
    for(const id in o.l){const w=state.walls.find(w=>w.id===id),q=o.l[id];w.x1=q.x1+dx;w.y1=q.y1+dy;w.x2=q.x2+dx;w.y2=q.y2+dy}
    for(const id in o.w){const w=wireById(id);w.pts=o.w[id].map(q=>[q[0]+dx,q[1]+dy])}
    render(); return}
   case 'vtx': {const w=wireById(drag.w); w.pts[drag.i]=[ps.x,ps.y]; drag.moved=true; render(); return}
   case 'rh': {const r=state.rooms.find(r=>r.id===drag.id); const x2=r.x+r.w,y2=r.y+r.h; let [ax,ay,bx,by]=[r.x,r.y,x2,y2];
-   if(drag.c===0){ax=ps.x;ay=ps.y} if(drag.c===1){bx=ps.x;ay=ps.y} if(drag.c===2){bx=ps.x;by=ps.y} if(drag.c===3){ax=ps.x;by=ps.y}
+   const q=e.altKey?ps:snapRoom(p,r), c=drag.c;
+   if(c===0){ax=q.x;ay=q.y} if(c===1){bx=q.x;ay=q.y} if(c===2){bx=q.x;by=q.y} if(c===3){ax=q.x;by=q.y}
+   if(c===4)ay=q.y; if(c===5)bx=q.x; if(c===6)by=q.y; if(c===7)ax=q.x;
    if(bx-ax>=20&&by-ay>=20){r.x=ax;r.y=ay;r.w=bx-ax;r.h=by-ay} drag.moved=true; render(); return}
   case 'wh': {const w=state.walls.find(w=>w.id===drag.id); if(drag.i===0){w.x1=ps.x;w.y1=ps.y}else{w.x2=ps.x;w.y2=ps.y} drag.moved=true; render(); return}
   case 'rsel': case 'room': drag.b=drag.t==='room'?snapRoom(p):p; renderOv(); return;
@@ -908,7 +942,10 @@ window.addEventListener('pointermove',e=>{
 window.addEventListener('pointerup',e=>{
  if(!drag) return; const d=drag; drag=null;
  if(d.t==='mom'){const x=dev(d.id);if(x){x.st[0]=false;changed()}return}
- if(['move','vtx','rh','wh','edge'].includes(d.t)&&d.moved){undoS.push(d.before);redoS=[];changed();return}
+ if(['move','vtx','rh','wh','edge'].includes(d.t)&&d.moved){undoS.push(d.before);redoS=[];changed();
+  if(d.t==='move'&&d.overlap) toast('El espacio quedó encima de otro. Muévalo hasta que se pegue al borde (aparece una línea guía) o use Ctrl+Z.',true);
+  else if(d.t==='move'&&d.guides&&d.guides.length&&Object.keys(d.orig.r).length) toast('Espacio anclado ✔ Los muros compartidos se unieron.');
+  return}
  if(d.t==='rsel'){
   const x1=Math.min(d.a.x,d.b.x),x2=Math.max(d.a.x,d.b.x),y1=Math.min(d.a.y,d.b.y),y2=Math.max(d.a.y,d.b.y);
   if(x2-x1>3||y2-y1>3){const inn=(x,y)=>x>=x1&&x<=x2&&y>=y1&&y<=y2;
@@ -921,7 +958,7 @@ window.addEventListener('pointerup',e=>{
  }
  if(d.t==='room'){
   const x=Math.min(d.a.x,d.b.x),y=Math.min(d.a.y,d.b.y),w=Math.abs(d.b.x-d.a.x),h=Math.abs(d.b.y-d.a.y);
-  if(w>=50&&h>=50){pushUndo();const t=settings.roomType||'alcoba',base=ROOMT[t].split(' /')[0],n=state.rooms.filter(r=>r.type===t).length;const r={id:uid(),name:base+(n?' '+(n+1):''),type:t,x,y,w,h};state.rooms.push(r);sel=new Set(['r:'+r.id]);sideTab='prop';changed();toast(`${r.name} creado (${f1(w/100)} x ${f1(h/100)} m). Los muros se dibujan solos; arrastre un muro para moverlo.`)}
+  if(w>=50&&h>=50){pushUndo();const t=settings.roomType||'alcoba',base=ROOMT[t].split(' /')[0],n=state.rooms.filter(r=>r.type===t).length;const r={id:uid(),name:base+(n?' '+(n+1):''),type:t,x,y,w,h};state.rooms.push(r);sel=new Set(['r:'+r.id]);sideTab='prop';changed();if(state.rooms.some(o=>o!==r&&rectOverlap(o,r))){toast(`${r.name} quedó encima de otro espacio. Arrástrelo hasta que se ancle al borde del vecino, o Ctrl+Z.`,true)}else toast(`${r.name} creado (${f1(w/100)} x ${f1(h/100)} m). Los muros se dibujan solos; arrastre un muro para moverlo.`)}
   else renderOv();
  }
  if(d.t==='pan') render();
@@ -1024,17 +1061,24 @@ function hoverInfo(e){
     else if(isOutlet(d)) t+=' – clic para conectar un aparato';
     else if(C.kind==='t220') t+=' – clic para encender/apagar';}}}
   else if(H.hit==='wire'){const w=wireById(H.id);if(w)t=`Cable ${COLORS[w.color].n} ${w.gauge} AWG · ${f1(wireLen(w)/100)} m${w.c&&circ(w.c)?' · '+cName(w.c):''}`}
-  else if(H.hit==='room'){const r=state.rooms.find(r=>r.id===H.id);if(r)t=`${r.name} · ${ROOMT[r.type]} · ${f1(r.w*r.h/1e4)} m²`}
+  else if(H.hit==='room'){const r=state.rooms.find(r=>r.id===H.id);if(r)t=`${r.name} · ${ROOMT[r.type]} · ${f1(r.w*r.h/1e4)} m² – arrástrelo para moverlo; se ancla solo a los espacios vecinos (Alt: sin imán)`}
   else if(H.hit==='rwall'){const w=RW[+H.i];if(w)t=`Muro ${w.th>=15?'exterior':'interior'} ${f1((w.b-w.a)/100)} m – arrástrelo para mover la pared (los espacios se ajustan solos)`}
   else if(H.hit==='wall'){const w=state.walls.find(w=>w.id===H.id);if(w)t=`Muro ${f1(Math.hypot(w.x2-w.x1,w.y2-w.y1)/100)} m`}}
  if(t!==hoverKey){hoverKey=t;$('#hov').textContent=t}
 }
-svg.addEventListener('dblclick',e=>{
- const hit=e.target.closest('[data-hit]');
+// doble clic propio: el primer clic redibuja el plano y el navegador no dispara 'dblclick'
+let lastDown=null;
+svg.addEventListener('pointerdown',e=>{
+ const t=performance.now(), L=lastDown; lastDown={t,x:e.clientX,y:e.clientY};
+ if(e.button===0&&L&&t-L.t<380&&Math.hypot(e.clientX-L.x,e.clientY-L.y)<6){lastDown=null;setTimeout(()=>onDbl(e),0)}
+},true);
+function onDbl(e){
+ const under=document.elementFromPoint(e.clientX,e.clientY), hit=under&&under.closest('#cv [data-hit]');
+ if(mode==='select'&&hit&&hit.dataset.hit==='room'){sel=new Set(['r:'+hit.dataset.id]);sideTab='prop';render();renderSide();const n=$('#rN');if(n){n.focus();n.select()}return}
  if(hit&&(hit.dataset.hit==='dev'||hit.dataset.hit==='brk')&&dev(hit.dataset.id)&&dev(hit.dataset.id).type==='tablero'){openPview();return}
  if(mode==='select'&&hit&&hit.dataset.hit==='vtx'){pushUndo();wireById(hit.dataset.id).pts.splice(+hit.dataset.i,1);changed()}
  if(mode==='wall'){wallDraft=null;renderOv()}
-});
+}
 
 // =====================================================================
 //  Teclado
@@ -1069,6 +1113,10 @@ window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='A
 function changed(undoable){syncFases();saveLocal();render();renderSide()}
 function delSel(){
  if(!sel.size) return; pushUndo();
+ const gone=new Set();
+ sel.forEach(k=>{const [t,id]=k.split(':');if(t!=='r')return;const r=state.rooms.find(x=>x.id===id);if(!r)return;
+  roomContents(r).forEach(d=>{const C=CAT[d.type];if(C.furn)gone.add(d.id);else if(C.open&&!state.rooms.some(o=>o!==r&&!sel.has('r:'+o.id)&&d.x>=o.x-8&&d.x<=o.x+o.w+8&&d.y>=o.y-8&&d.y<=o.y+o.h+8))gone.add(d.id)})});
+ gone.forEach(id=>sel.add('d:'+id));
  sel.forEach(k=>{const [t,id]=k.split(':');
   if(t==='d'){state.devices=state.devices.filter(d=>d.id!==id);state.wires=state.wires.filter(w=>w.a.d!==id&&w.b.d!==id)}
   if(t==='w') state.wires=state.wires.filter(w=>w.id!==id);
@@ -1100,7 +1148,7 @@ function pasteClip(at,off){
 function duplicate(){if(copySel())pasteClip(null,40)}
 function nudge(dx,dy){
  pushUndo(); const o=capture();
- for(const id in o.d){const d=dev(id);d.x+=dx;d.y+=dy}
+ for(const id in o.d){const d=dev(id);if(d){d.x+=dx;d.y+=dy}}
  for(const id in o.r){const r=state.rooms.find(r=>r.id===id);r.x+=dx;r.y+=dy}
  for(const id in o.l){const w=state.walls.find(w=>w.id===id);w.x1+=dx;w.y1+=dy;w.x2+=dx;w.y2+=dy}
  for(const id in o.w){const w=wireById(id);w.pts=w.pts.map(p=>[p[0]+dx,p[1]+dy])}

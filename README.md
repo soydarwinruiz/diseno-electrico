@@ -17,7 +17,10 @@ No requiere internet ni instalación.
 
 ### Plano fácil (pestaña 🏠 Plano)
 - Elija el tipo de espacio y arrastre un rectángulo: **los muros y las cotas se dibujan solos** (15 cm exteriores, 12 cm interiores).
+- **Arrastre un espacio** desde cualquier punto para moverlo: **se ancla solo** al borde del vecino (guía rosada) y lleva consigo sus muebles, puertas, ventanas y aparatos. Alt: mover sin imán.
 - **Arrastre un muro** para mover la pared: los espacios vecinos se ajustan y los aparatos pegados al muro lo acompañan.
+- Manijas en esquinas y lados para cambiar medidas (también con imán); aviso en rojo si un espacio queda encima de otro.
+- Doble clic en un espacio para cambiarle el nombre; al borrarlo se van también sus muebles y aberturas.
 - Puertas (sencilla, doble, corrediza) y ventanas que **se insertan en el muro** y abren hacia el lado elegido.
 - **Muebles** básicos (camas, sofá, comedor, sanitario, lavamanos, ducha, estufa, nevera, lavadora, mesón).
 - **Plantillas**: apartaestudio, casa de 2 alcobas, casa de 3 alcobas.
