@@ -84,3 +84,13 @@ No requiere internet ni instalación.
 ## Aviso
 
 Herramienta de apoyo para diseño y aprendizaje. El diseño definitivo debe ser revisado y firmado por un profesional competente con matrícula, conforme al RETIE y la NTC 2050 vigentes.
+
+## Versiones
+
+El historial está en [CHANGELOG.md](CHANGELOG.md). Para publicar una versión nueva:
+
+1. Cambie `APP_VERSION` en `app/DisenoElectrico.html` (por ejemplo `1.7.0`).
+2. Agregue la sección `## v1.7.0 — Título` al inicio de `CHANGELOG.md`.
+3. Ejecute `./build.sh`, actualice `dist/DisenoElectrico-Windows.zip` y suba los cambios a `main`.
+
+La acción de GitHub *Publicar versión* (`.github/workflows/publicar-version.yml`) crea sola la etiqueta `v1.7.0` y la **Release** con sus notas y el ZIP para descargar.

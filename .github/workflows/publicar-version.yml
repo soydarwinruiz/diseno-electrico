@@ -1,0 +1,52 @@
+# Publica automáticamente una Release en GitHub cuando cambia la versión del programa.
+# La versión se lee de APP_VERSION en app/DisenoElectrico.html y las notas de CHANGELOG.md.
+name: Publicar versión
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Notas de una versión (desde CHANGELOG.md)
+        run: |
+          cat > notas.sh <<'SH'
+          # uso: notas.sh 1.6.0  -> escribe notas.md y titulo.txt
+          V="$1"
+          awk -v h="## v$V " 'index($0,h)==1{f=1;next} /^## /{f=0} f' CHANGELOG.md > notas.md
+          grep -m1 "^## v$V " CHANGELOG.md | sed 's/^## //' > titulo.txt
+          [ -s titulo.txt ] || echo "v$V" > titulo.txt
+          SH
+          chmod +x notas.sh
+
+      - name: Versiones anteriores (solo la primera vez)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while read -r V SHA; do
+            [ -z "$V" ] && continue
+            if gh release view "v$V" >/dev/null 2>&1; then continue; fi
+            ./notas.sh "$V"
+            gh release create "v$V" --target "$SHA" --title "$(cat titulo.txt)" --notes-file notas.md --latest=false
+          done < .github/versiones-anteriores.txt
+
+      - name: Versión actual
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(grep -oP "const APP_VERSION='\K[0-9.]+" app/DisenoElectrico.html)
+          echo "Versión del programa: $V"
+          if gh release view "v$V" >/dev/null 2>&1; then echo "La release v$V ya existe."; exit 0; fi
+          ./notas.sh "$V"
+          cp dist/DisenoElectrico-Windows.zip "DisenoElectrico-v$V-Windows.zip"
+          gh release create "v$V" "DisenoElectrico-v$V-Windows.zip" --target "$GITHUB_SHA" --title "$(cat titulo.txt)" --notes-file notas.md --latest
