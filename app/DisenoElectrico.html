@@ -361,6 +361,7 @@ const DRAW={
  ducha:(d,on)=>`<circle r="15.5" cx=".8" cy="1.2" fill="rgba(0,0,0,.15)"/><circle r="15" fill="url(#gMetal)" stroke="#6b737c" stroke-width=".7"/><circle r="11" fill="${on?'#ffe0b2':'#d6dde4'}" stroke="#9aa3ac" stroke-width=".5"/>`+
   [...Array(19)].map((_,i)=>{if(i===0)return `<circle r=".9" fill="#56606a"/>`;const k=i<7?4:8,a=(i<7?i:i-7)*Math.PI/(i<7?3:6);return `<circle cx="${(k*Math.cos(a)).toFixed(2)}" cy="${(k*Math.sin(a)).toFixed(2)}" r=".9" fill="#56606a"/>`}).join('')+
   tiny(0,-16.8,'240 V','#c62828',3.6)+(on?`<g stroke="#4fc3f7" stroke-width=".8" opacity=".9"><path d="M-6 13 l-2 6M0 14 v6M6 13 l2 6"/></g>`:''),
+ derivacion:()=>`<circle r="6.5" fill="#ef6c00" stroke="#a84a00" stroke-width="1"/><circle r="3.2" fill="#ffb74d"/><path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="#a84a00" stroke-width=".8"/>`,
  empalme:()=>`<path d="M-6 7 L-4.5 -7 Q0 -10.5 4.5 -7 L6 7 Z" fill="#ef6c00" stroke="#a84a00" stroke-width=".6"/><path d="M-5.3 2h10.6M-5 -2h10M-4.7 -5.5h9.4" stroke="#c25400" stroke-width=".6"/>`,
  varilla:()=>`<rect x="-13" y="-8" width="26" height="28" rx="3" fill="#a1887f" opacity=".35"/><path d="M-13 -8h26" stroke="#6d4c41" stroke-width="1" stroke-dasharray="2 1.5"/>`+
   `<rect x="-2" y="-17" width="4" height="36" rx="1" fill="url(#gCopper)" stroke="#7a4519" stroke-width=".4"/><rect x="-4.5" y="-14.5" width="9" height="5" rx="1" fill="url(#gMetal)" stroke="#6b737c" stroke-width=".5"/>`+tiny(9,4,'SPT','#5d4037',4),
@@ -437,6 +438,7 @@ const CAT={
  ducha:{n:'Ducha eléctrica 240 V',g:'Tablero y especiales',kind:'t220',va:4500,h:'2,10 m',box:'Caja 4x4" con tapa',bb:[34,40],terms:[T('F1',-10,22,'f'),T('F2',0,22,'f'),T('T',10,22,'t')],note:'Requiere circuito exclusivo de 2 polos y conexión a tierra.'},
  timbre:{n:'Timbre',g:'Tablero y especiales',kind:'luz',va:15,h:'2,00 m',box:'Caja rectangular 2x4"',bb:[30,34],terms:[T('F',-8,19,'f'),T('N',8,19,'n')]},
  tablero:{n:'Tablero de distribución',g:'Tablero y especiales',h:'Máx. 2,00 m a la manija más alta',note:'Ubíquelo en un sitio accesible y seco (no en baños ni closets). Cada circuito tiene su breaker; en "Tablero" (pestaña derecha) configure breakers, calibres y fases.'},
+ derivacion:{n:'Derivación (empalme en el cable)',g:'Tablero y especiales',hidden:true,bb:[14,14],terms:[{...T('J',0,0,'j'),lb:''}],note:'Punto donde un cable se desprende de otro (empalme con conector de resorte dentro de una caja). Se crea haciendo clic sobre un cable con la herramienta Cable. Si lo borra y tiene solo dos cables, estos se vuelven a unir.'},
  empalme:{n:'Empalme / conector',g:'Tablero y especiales',bb:[16,22],terms:[T('J',0,10,'j')],note:'Punto de unión de varios conductores (dentro de una caja). Conecte aquí los cables que deben quedar unidos.'},
  varilla:{n:'Varilla de puesta a tierra',g:'Tablero y especiales',bb:[30,44],terms:[T('T',0,-21,'t')],note:'Sistema de puesta a tierra (SPT) obligatorio según RETIE. Se une a la barra de tierra del tablero con cable desnudo.'},
  puerta:{n:'Puerta',g:'Arquitectura',arch:true,open:true,dw:90,ws:[70,80,90,100]},
@@ -458,7 +460,7 @@ const CAT={
 const SWITCHES=['int_sencillo','int_doble','int_triple','int_conmutable','int_cruce','pulsador','int_toma'];
 const isLight=d=>CAT[d.type].kind==='luz';
 const isOutlet=d=>CAT[d.type].kind==='toma';
-const isElec=d=>!CAT[d.type].arch && !['tablero','empalme','varilla'].includes(d.type);
+const isElec=d=>!CAT[d.type].arch && !['tablero','empalme','varilla','derivacion'].includes(d.type);
 
 // =====================================================================
 //  Estado
@@ -771,7 +773,7 @@ function thumb(type,size=40){
  return `<svg width="${size}" height="${size}" viewBox="${vb}">${inner}</svg>`;
 }
 function buildPalette(){
- const groups={}; Object.entries(CAT).forEach(([k,c])=>{(groups[c.g]=groups[c.g]||[]).push(k)});
+ const groups={}; Object.entries(CAT).filter(([,c])=>!c.hidden).forEach(([k,c])=>{(groups[c.g]=groups[c.g]||[]).push(k)});
  const PLAN=['Arquitectura','Muebles'], tab=settings.ptab=settings.ptab||(state.devices.some(isElec)?'elec':'plano');
  let h=`<div class="ptabs"><button data-pt="plano" class="${tab==='plano'?'on':''}">🏠 Plano</button><button data-pt="elec" class="${tab==='elec'?'on':''}">⚡ Eléctrico</button></div>`;
  if(tab==='plano'){
@@ -796,7 +798,7 @@ const HINTS={
  pan:'Arrastre para desplazar la vista. Rueda para acercar/alejar.',
  wall:'Clic para iniciar el muro y clic en cada esquina · Clic dos veces en el mismo punto, clic derecho o Esc para terminar · Shift: ángulo libre',
  room:'Arrastre para dibujar el espacio (se alinea con los espacios vecinos). Los muros y medidas aparecen solos. Elija el tipo en la paleta izquierda (pestaña Plano).',
- wire:'Clic en un borne (tornillo) para iniciar · clics intermedios para doblar el cable · clic en otro borne para terminar · Retroceso: quita el último punto · Esc: cancelar',
+ wire:'Clic en un borne o SOBRE UN CABLE (crea una derivación) para iniciar · clics intermedios para doblar el cable · clic en otro borne para terminar · Retroceso: quita el último punto · Esc: cancelar',
  sim:'SIMULACIÓN: clic en interruptores para accionarlos · clic en tomacorrientes para conectar aparatos · T: ver el tablero con sus tacos',
  place:'Clic para colocar · Se pega al muro más cercano (Alt: libre) · Puertas: abren hacia el lado del ratón · R: rotar · Esc: terminar'
 };
@@ -831,6 +833,7 @@ function snapWall(p,free){
 }
 function draftColor(endType){
  if(!wireDraft) return settings.color;
+ if(wireDraft.color) return wireDraft.color;
  const a=dev(wireDraft.a.d), ta=tType(a,wireDraft.a.t);
  if(settings.autoColor){const ts=[ta,endType]; if(ts.includes('n')) return 'blanco'; if(ts.includes('t')) return 'verde'}
  return settings.color;
@@ -845,7 +848,7 @@ svg.addEventListener('pointerdown',e=>{
  if(mode==='wall') return wallClick(e,p);
  if(mode==='room'){const q=snapRoom(p);drag={t:'room',a:q,b:q};return}
  if(mode==='place') return placeAt(ps,p,e.altKey);
- if(mode==='wire') return wireClick(H,ps);
+ if(mode==='wire') return wireClick(H,ps,p);
  selectDown(e,H,p,ps);
 });
 function snapRoom(p,except){
@@ -1028,16 +1031,33 @@ function placeAt(ps,p,alt){
  sel=new Set(['d:'+d.id]);
  changed();
 }
-function wireClick(H,ps){
+function projOnWire(w,p){const P=wirePts(w);let best=null;for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],dx=b.x-a.x,dy=b.y-a.y,L2=dx*dx+dy*dy||1,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/L2,0,1),q={x:a.x+t*dx,y:a.y+t*dy},d=dist(p,q);if(!best||d<best.d)best={i,q,d}}return best}
+function splitWire(w,p){
+ // parte el cable en dos y pone una derivación (empalme) en el punto
+ const pr=projOnWire(w,p), q={x:Math.round(pr.q.x*2)/2,y:Math.round(pr.q.y*2)/2};
+ const j={id:uid(),type:'derivacion',x:q.x,y:q.y,r:0,st:[],c:w.c||null};
+ const base={color:w.color,gauge:w.gauge,role:w.role,c:w.c,pole:w.pole};
+ state.devices.push(j); state.wires=state.wires.filter(x=>x!==w);
+ state.wires.push({id:uid(),...base,a:w.a,b:{d:j.id,t:'J'},pts:w.pts.slice(0,pr.i-1)},{id:uid(),...base,a:{d:j.id,t:'J'},b:w.b,pts:w.pts.slice(pr.i-1)});
+ return j;
+}
+function startBranch(w,p){pushUndo();sel.clear();const j=splitWire(w,p);if(mode!=='wire')setMode('wire');wireDraft={a:{d:j.id,t:'J'},pts:[],color:w.color,gauge:w.gauge,fromBranch:true};changed();
+ toast(`Derivación creada en el cable ${COLORS[w.color].n.toLowerCase()}. Ahora haga clic en el borne de destino (o en otro cable).`)}
+function wireClick(H,ps,p){
+ let preSplit=null;
+ if(H.hit==='wire'){const w=wireById(H.id); if(!w) return;
+  if(!wireDraft) return startBranch(w,p||ps);
+  preSplit=ser(); const j=splitWire(w,p||ps); H={hit:'term',id:j.id,t:'J'};
+ }
  if(H.hit==='term'){
   const end={d:H.id,t:H.t};
-  if(!wireDraft){wireDraft={a:end,pts:[]};renderOv();return}
+  if(!wireDraft){const ws=tType(dev(H.id),H.t)==='j'?wiresAt(H.id,H.t):[];wireDraft={a:end,pts:[],color:ws[0]&&ws[0].color,gauge:ws[0]&&ws[0].gauge};renderOv();return}
   if(end.d===wireDraft.a.d&&end.t===wireDraft.a.t) return;
-  pushUndo();
+  if(!wireDraft.fromBranch) pushUndo(); if(preSplit) undoS[undoS.length-1]=preSplit;
   const da=dev(wireDraft.a.d), db=dev(end.d);
   const color=draftColor(tType(db,end.t));
   const cid=(da.c&&circ(da.c)?da.c:null)||(db.c&&circ(db.c)?db.c:null);
-  const w={id:uid(),a:wireDraft.a,b:end,pts:wireDraft.pts,color,gauge:cid?circ(cid).gauge:settings.gauge,c:cid};
+  const w={id:uid(),a:wireDraft.a,b:end,pts:wireDraft.pts,color,gauge:wireDraft.gauge||(cid?circ(cid).gauge:settings.gauge),c:cid};
   if(!w.pts.length) w.pts=route(tpos(da,w.a.t),tpos(db,end.t),0);
   state.wires.push(w); wireDraft=null; sel=new Set(['w:'+w.id]); changed(); return;
  }
@@ -1060,7 +1080,7 @@ function hoverInfo(e){
     else if(C.sw) t+=' – clic para accionar';
     else if(isOutlet(d)) t+=' – clic para conectar un aparato';
     else if(C.kind==='t220') t+=' – clic para encender/apagar';}}}
-  else if(H.hit==='wire'){const w=wireById(H.id);if(w)t=`Cable ${COLORS[w.color].n} ${w.gauge} AWG · ${f1(wireLen(w)/100)} m${w.c&&circ(w.c)?' · '+cName(w.c):''}`}
+  else if(H.hit==='wire'){const w=wireById(H.id);if(w)t=`Cable ${COLORS[w.color].n} ${w.gauge} AWG · ${f1(wireLen(w)/100)} m${w.c&&circ(w.c)?' · '+cName(w.c):''}`+(mode==='wire'?' – clic aquí para derivar (empalme)':'')}
   else if(H.hit==='room'){const r=state.rooms.find(r=>r.id===H.id);if(r)t=`${r.name} · ${ROOMT[r.type]} · ${f1(r.w*r.h/1e4)} m² – arrástrelo para moverlo; se ancla solo a los espacios vecinos (Alt: sin imán)`}
   else if(H.hit==='rwall'){const w=RW[+H.i];if(w)t=`Muro ${w.th>=15?'exterior':'interior'} ${f1((w.b-w.a)/100)} m – arrástrelo para mover la pared (los espacios se ajustan solos)`}
   else if(H.hit==='wall'){const w=state.walls.find(w=>w.id===H.id);if(w)t=`Muro ${f1(Math.hypot(w.x2-w.x1,w.y2-w.y1)/100)} m`}}
@@ -1113,6 +1133,9 @@ window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='A
 function changed(undoable){syncFases();saveLocal();render();renderSide()}
 function delSel(){
  if(!sel.size) return; pushUndo();
+ sel.forEach(k=>{if(k[0]!=='d')return;const d=dev(k.slice(2));if(!d||d.type!=='derivacion')return;const ws=wiresAt(d.id,'J');if(ws.length!==2)return;const [w1,w2]=ws;
+  const o1=w1.a.d===d.id?{end:w1.b,pts:[...w1.pts].reverse()}:{end:w1.a,pts:w1.pts}, o2=w2.a.d===d.id?{end:w2.b,pts:w2.pts}:{end:w2.a,pts:[...w2.pts].reverse()};
+  state.wires=state.wires.filter(x=>x!==w1&&x!==w2); state.wires.push({...w1,id:uid(),a:o1.end,b:o2.end,pts:[...o1.pts,[d.x,d.y],...o2.pts]})});
  const gone=new Set();
  sel.forEach(k=>{const [t,id]=k.split(':');if(t!=='r')return;const r=state.rooms.find(x=>x.id===id);if(!r)return;
   roomContents(r).forEach(d=>{const C=CAT[d.type];if(C.furn)gone.add(d.id);else if(C.open&&!state.rooms.some(o=>o!==r&&!sel.has('r:'+o.id)&&d.x>=o.x-8&&d.x<=o.x+o.w+8&&d.y>=o.y-8&&d.y<=o.y+o.h+8))gone.add(d.id)})});
@@ -1178,6 +1201,7 @@ function ctxMenu(e,H,p){
     items.push({head:'Asignar circuito'},{chips:true})}
   }
   const w=key[0]==='w'&&wireById(key.slice(2));
+  if(w) items.push({t:'⑂ Derivar un cable desde aquí',f:()=>startBranch(w,p)});
   if(w) items.push({t:'↳ Ruta ortogonal automática',f:()=>upd(()=>w.pts=route(tpos(dev(w.a.d),w.a.t),tpos(dev(w.b.d),w.b.t),OFF[w.role]||0))},{t:'／ Línea recta',f:()=>upd(()=>w.pts=[])});
   const r=key[0]==='r'&&state.rooms.find(x=>x.id===key.slice(2));
   if(r) items.push({t:'🧱 Muros automáticos',f:()=>{sideTab='prop';renderSide();upd(()=>r.autoWalls=true)}},{t:'⚙ Cablear este espacio',f:()=>autoWireAll(r)});
@@ -1449,6 +1473,7 @@ function renderSide(){
  sideProp(B);
 }
 function sideProp(B){
+ sel.forEach(k=>{const [t,id]=k.split(':');if((t==='d'&&!dev(id))||(t==='w'&&!wireById(id))||(t==='r'&&!state.rooms.some(r=>r.id===id))||(t==='l'&&!state.walls.some(w=>w.id===id)))sel.delete(k)});
  const items=[...sel]; let h='';
  if(mode==='sim'){
   const ls=state.devices.filter(isLight), on=ls.filter(d=>simRes&&simRes.dev[d.id]&&simRes.dev[d.id].on).length;
@@ -1706,6 +1731,7 @@ function help(){
  <li><b>Guardar / Imprimir:</b> el trabajo se guarda solo en este equipo, y con <b>Guardar</b> lo exporta a un archivo. <b>Imprimir / PDF</b> genera el plano, el cuadro de cargas y los materiales.</li>
  </ol>
  <h3>Atajos</h3><p>V seleccionar · M muro · H espacio · C cable · S simular · R rotar · Supr eliminar · Ctrl+Z / Ctrl+Y deshacer / rehacer · Ctrl+C / Ctrl+V copiar y pegar (donde esté el ratón) · Ctrl+D duplicar · Flechas mover fino (Shift: 50 cm) · Ctrl+S guardar · Rueda zoom · Espacio+arrastrar desplazar · Esc terminar.</p>
+ <h3>Derivaciones (empalmes)</h3><p>Con <b>〰 Cable</b>, haga clic <b>sobre un cable existente</b>: se crea un empalme ⊗ y desde ahí sale un cable nuevo del mismo color y calibre (por ejemplo, del neutro principal se desprende el neutro de otra luz). También puede terminar un cable sobre otro cable, o usar clic derecho → «Derivar un cable desde aquí». Si borra una derivación que solo une dos tramos, el cable se vuelve a unir.</p>
  <h3>Simulación interactiva</h3><p>En <b>▶ Simular</b>: accione interruptores, mantenga presionado el pulsador para que suene el timbre, haga clic en los <b>tomacorrientes para conectar aparatos</b> (TV, licuadora, plancha…) y en la ducha o la estufa para encenderlas. Abra el <b>🗄 Tablero</b> (tecla T) para ver los tacos reales, el medidor de energía y la corriente de cada circuito. Si conecta demasiados aparatos, los cables se ponen naranja y el taco <b>se dispara por sobrecarga</b>. Un taco disparado se rearma bajándolo a OFF y luego subiéndolo a ON. Arrastrando un taco a otra fila cambia su fase (A o B).</p>
  <h3>Trucos</h3><p><b>Clic derecho</b> sobre cualquier cosa abre un menú (rotar, duplicar, asignar circuito, cablear…). Los interruptores y tomacorrientes <b>se pegan al muro</b> y miran hacia el espacio (Alt para ubicarlos libres). Con <b>Ver:</b> (barra superior) o el 👁 de la pestaña Tablero se muestra un solo circuito. Puede <b>arrastrar</b> aparatos desde la paleta y <b>buscarlos</b> por nombre. Pase el ratón sobre un borne para saber qué es.</p>
  <h3>Conexiones típicas</h3>

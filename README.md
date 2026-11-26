@@ -39,6 +39,7 @@ No requiere internet ni instalación.
 - **Plano base:** muros, espacios (alcoba, sala, cocina, baño, lavadero…), puertas, ventanas e imagen de fondo del plano.
 - **Aparatos realistas:** bombillo, plafón LED, aplique, ventilador, interruptor sencillo/doble/triple, conmutable (3 vías), cruce (4 vías), interruptor + tomacorriente, tomacorriente doble, GFCI, 240 V, ducha eléctrica, timbre, empalme, varilla de puesta a tierra.
 - **Cables de colores y calibres AWG**, conectados a los bornes de cada aparato (fase, neutro, tierra).
+- **Derivaciones**: con la herramienta Cable, un clic sobre un cable existente crea un empalme y desde ahí sale un cable nuevo del mismo color y calibre (cable principal con ramales).
 - **Tablero** con breakers configurables (polos, amperaje, calibre, fase, diferencial).
 - **Conexión automática:** luces desde 1, 2 o 3+ sitios; tomacorrientes encadenados.
 - **▶ Simulación:** accione interruptores y breakers; detecta cortocircuitos.
