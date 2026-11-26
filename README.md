@@ -34,6 +34,13 @@ No requiere internet ni instalación.
 
 ![Modelos de tablero](docs/tablero-modelos.png)
 
+### 🧊 Vista 3D y recorrido (v2.0)
+- La casa en 3D con muebles y los aparatos eléctricos a su altura real; las luces encendidas en la simulación iluminan la casa.
+- **Caminar** por dentro en primera persona y accionar interruptores con un clic.
+
+![Vista 3D de noche](docs/3d-noche.png)
+![Recorrido](docs/3d-recorrido.png)
+
 ### Novedades v1.9
 - Cables trazados **por los muros**, **presupuesto** con precios editables y cotización, **actualizaciones automáticas**, calibración del plano de fondo con 2 puntos, versiones del proyecto y plantillas de 1 y 4 alcobas. Créditos en [CREDITOS.md](CREDITOS.md).
 

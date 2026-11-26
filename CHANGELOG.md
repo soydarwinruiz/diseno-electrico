@@ -2,6 +2,13 @@
 
 Todas las versiones se pueden descargar en la sección **Releases** del repositorio.
 
+## v2.0.0 — Vista 3D y recorrido caminando
+- **🧊 Vista 3D** (botón 3D o tecla 3): la casa en 3D con muros, vanos de puertas y ventanas, pisos por espacio, muebles y cada aparato eléctrico a su altura real (tomas a 0,30 m, interruptores a 1,20 m, luces en el techo, tablero a 1,45 m).
+- **Luces reales**: las luces encendidas en la simulación iluminan la casa; modo **🌙 Noche** para verlas mejor. Los ventiladores y extractores giran.
+- **🚶 Caminar** en primera persona por la casa (ratón para mirar, W A S D o flechas), sin atravesar muros, y **accionar interruptores, tacos y tomacorrientes con un clic** dentro del 3D.
+- **Girar**, desplazar y acercar la casa; opción de **muros bajos** para ver la distribución desde arriba.
+- Usa la librería three.js (licencia MIT), incluida dentro del programa: funciona sin internet.
+
 ## v1.9.0 — Cables por los muros, presupuesto y actualizaciones automáticas
 - **Cables por los muros**: la conexión automática y los cables nuevos siguen los muros, como en una obra real (idea adaptada de *house-planner*, MIT). Los metros de cable, la tubería y la caída de tensión salen más exactos. Botón para rehacer todas las rutas.
 - **💲 Presupuesto** (pestaña Costos): precios de ejemplo editables que se recuerdan para todos los proyectos, mano de obra, misceláneos, IVA, casillas de «comprado» con el valor pagado, exportación a Excel y cotización para imprimir.
