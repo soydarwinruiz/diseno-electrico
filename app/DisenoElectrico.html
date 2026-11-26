@@ -27,7 +27,7 @@ button,select,input{font:inherit}
 .tb:hover{background:#e8f0fb}
 .tb.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .tb.sim.on{background:#f9a825;border-color:#f9a825;color:#222}
-.sw{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #9aa3ac;cursor:pointer;display:inline-block}
+.sw{width:17px;height:17px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #9aa3ac;cursor:pointer;display:inline-block}
 .sw.on{box-shadow:0 0 0 2px var(--ac)}
 #palette{grid-row:3;overflow:auto;background:#fff;border-right:1px solid var(--ln);padding:6px}
 #palette h4{margin:10px 4px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu)}
@@ -39,7 +39,7 @@ button,select,input{font:inherit}
 #wrap{grid-row:3;position:relative;overflow:hidden;background:#fbfcfd}
 #cv{width:100%;height:100%;display:block;touch-action:none;user-select:none}
 #cv.m-wire .th:hover{fill:rgba(21,101,192,.35)}
-#cv.m-place,#cv.m-wall,#cv.m-room,#cv.m-wire{cursor:crosshair}
+#cv.m-place,#cv.m-wall,#cv.m-room,#cv.m-wire,#cv.m-measure{cursor:crosshair}
 #cv.m-pan{cursor:grab}
 #side{grid-row:3;overflow:hidden;background:#fff;border-left:1px solid var(--ln);display:flex;flex-direction:column}
 .tabs{display:flex;border-bottom:1px solid var(--ln)}
@@ -169,7 +169,18 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
  html,body{overflow:visible;height:auto;background:#fff}
  #app,#toast,#modal{display:none!important}
  #print{display:block}
- #print svg{width:100%;height:auto;max-height:180mm}
+ #print svg{width:100%;height:auto;max-height:170mm}
+ #print .p1{display:grid;grid-template-columns:1fr 62mm;gap:5mm;height:186mm}
+ #print .pmain{overflow:hidden}
+ #print .pside{display:flex;flex-direction:column;gap:3mm;justify-content:space-between;font-size:9px;overflow:hidden}
+ #print .pside .rot{margin-top:auto}
+ #print .lg{display:grid;grid-template-columns:1fr 1fr;gap:.6mm 1.5mm;font-size:7px;line-height:1.1}#print .lg div{display:flex;align-items:center;gap:1mm}#print .lg svg{width:16px!important;height:16px!important;flex:none}
+ #print .pl h4{margin:0 0 1mm;font-size:9px;letter-spacing:.08em}
+ #print .pl table{width:100%;border-collapse:collapse;font-size:8.5px}#print .pl td{padding:0 1mm;vertical-align:middle}
+ #print .rot{width:100%;border-collapse:collapse;font-size:8.5px}#print .rot td{border:1px solid #555;padding:1mm}#print .rot td:first-child{width:18mm;color:#555}
+ #print .rt{font-weight:800;font-size:11px;text-align:center;background:#eee}
+ #print h3{margin:3mm 0 1mm;font-size:12px}
+ #print .t{width:100%;border-collapse:collapse}#print .t td,#print .t th{border:1px solid #bbb;padding:.6mm 1mm;font-size:8.5px}
  #print .pg{page-break-after:always}
  #print table{font-size:10px}
 }
@@ -208,6 +219,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 <div id="app">
  <div id="menubar">
   <div class="brand">⚡ Diseño Eléctrico Residencial <span id="appVer" style="font-size:11px;font-weight:600;background:rgba(255,255,255,.18);border-radius:8px;padding:1px 6px"></span><small>RETIE · NTC 2050</small></div>
+  <button data-m="lib" title="Todos sus proyectos guardados en este equipo">📂 Mis proyectos</button>
   <button data-m="new">Nuevo</button>
   <button data-m="open">Abrir…</button>
   <button data-m="save">Guardar</button>
@@ -217,6 +229,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
   <button data-m="sample">Casa de ejemplo</button>
   <button data-m="learn" style="background:#f9a825;color:#1b1b1b;font-weight:600">📖 Guías y glosario</button>
   <button data-m="help">Ayuda</button>
+  <button data-m="keys" title="Atajos de teclado (?)">⌨</button>
   <input id="projName" title="Nombre del proyecto">
   <input id="fileIn" type="file" accept=".json,.elec,application/json" style="display:none">
   <input id="imgIn" type="file" accept="image/*" style="display:none">
@@ -228,6 +241,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
    <button class="tb" data-mode="wall" title="Dibujar muros (M)">🧱 Muro</button>
    <button class="tb" data-mode="room" title="Dibujar espacio / habitación (H)">⬚ Espacio</button>
    <button class="tb" data-mode="wire" title="Dibujar cable entre bornes (C)">〰 Cable</button>
+   <button class="tb" data-mode="measure" title="Medir distancias (D)">📏 Medir</button>
    <button class="tb sim" data-mode="sim" title="Probar el circuito (S)">▶ Simular</button>
   </div>
   <div class="grp" id="wireOpts">
@@ -273,7 +287,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 
 <script>
 "use strict";
-const APP_VERSION='1.6.0';
+const APP_VERSION='1.7.0';
 // =====================================================================
 //  Utilidades
 // =====================================================================
@@ -389,6 +403,8 @@ const DRAW={
  corrediza:(d)=>{const w=d.w||160;return `<rect x="${-w/2}" y="-9" width="${w}" height="18" fill="#fbfcfd"/><rect x="${-w/2}" y="-5" width="${w/2+6}" height="4" fill="#bcaaa4" stroke="#5d4037" stroke-width="1"/><rect x="${-6}" y="1" width="${w/2+6}" height="4" fill="#bcaaa4" stroke="#5d4037" stroke-width="1"/>`+
   `<path d="M${-w/4} -10 h${w/2} m-6 -3 l6 3 l-6 3" fill="none" stroke="#8d6e63" stroke-width="1"/>`},
  ventana:(d)=>{const w=d.w||120;return `<rect x="${-w/2}" y="-8" width="${w}" height="16" fill="#fbfcfd"/><rect x="${-w/2}" y="-6" width="${w}" height="12" fill="#e3f2fd" stroke="#455a64" stroke-width="1.2"/><line x1="${-w/2}" y1="-1.5" x2="${w/2}" y2="-1.5" stroke="#64b5f6" stroke-width="1.2"/><line x1="${-w/2}" y1="1.5" x2="${w/2}" y2="1.5" stroke="#64b5f6" stroke-width="1.2"/><line x1="0" y1="-6" x2="0" y2="6" stroke="#455a64" stroke-width="1"/>`},
+ nota:(d)=>{const fs=d.fs||14,L=String(d.text||'Nota').split('\n'),w=Math.max(...L.map(l=>l.length))*fs*.56+14,h=L.length*fs*1.25+8;
+  return `<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="4" fill="rgba(255,253,231,.92)" stroke="#f9a825" stroke-width="1"/>`+L.map((l,i)=>`<text x="${-w/2+7}" y="${-h/2+4+fs*(i+1)}" font-size="${fs}" fill="#37474f" font-family="Segoe UI,Arial">${esc(l)}</text>`).join('')},
  cama2:()=>`<rect x="-80" y="-100" width="160" height="200" rx="6" fill="#fff" stroke="#8d99a6" stroke-width="1.5"/><rect x="-72" y="-92" width="66" height="34" rx="9" fill="#eef2f6" stroke="#9aa5b1"/><rect x="6" y="-92" width="66" height="34" rx="9" fill="#eef2f6" stroke="#9aa5b1"/><rect x="-80" y="-45" width="160" height="145" rx="6" fill="#dbe7f5" stroke="#8d99a6" stroke-width="1.2"/><path d="M-80 -25 H80" stroke="#b6c8de" stroke-width="2"/>`,
  cama1:()=>`<rect x="-50" y="-95" width="100" height="190" rx="6" fill="#fff" stroke="#8d99a6" stroke-width="1.5"/><rect x="-40" y="-87" width="80" height="32" rx="9" fill="#eef2f6" stroke="#9aa5b1"/><rect x="-50" y="-42" width="100" height="137" rx="6" fill="#e3eedc" stroke="#8d99a6" stroke-width="1.2"/><path d="M-50 -22 H50" stroke="#c2d6b5" stroke-width="2"/>`,
  sofa:()=>`<rect x="-100" y="-45" width="200" height="90" rx="12" fill="#cfd8dc" stroke="#78909c" stroke-width="1.5"/><rect x="-100" y="-45" width="200" height="24" rx="10" fill="#b0bec5"/><rect x="-100" y="-30" width="20" height="75" rx="8" fill="#b0bec5"/><rect x="80" y="-30" width="20" height="75" rx="8" fill="#b0bec5"/><path d="M-27 -20 V40 M27 -20 V40" stroke="#90a4ae" stroke-width="1.5"/>`,
@@ -465,6 +481,7 @@ const CAT={
  puerta_doble:{n:'Puerta doble',g:'Arquitectura',arch:true,open:true,dw:140,ws:[120,140,160]},
  corrediza:{n:'Puerta corrediza',g:'Arquitectura',arch:true,open:true,dw:160,ws:[120,160,200,240]},
  ventana:{n:'Ventana',g:'Arquitectura',arch:true,open:true,dw:120,ws:[60,100,120,150,200]},
+ nota:{n:'Texto / nota',g:'Arquitectura',arch:true,note:'Escriba aclaraciones en el plano: alturas, materiales, observaciones para el instalador.'},
  cama2:{n:'Cama doble',g:'Muebles',arch:true,furn:[160,200]},
  cama1:{n:'Cama sencilla',g:'Muebles',arch:true,furn:[100,190]},
  sofa:{n:'Sofá',g:'Muebles',arch:true,furn:[200,90]},
@@ -493,7 +510,7 @@ let sel=new Set();
 let undoS=[], redoS=[];
 let settings={autoColor:true,color:'negro',gauge:'12',showLabels:true,grid:true,snap:5,viewC:''};
 const WALLMOUNT=['int_sencillo','int_doble','int_triple','int_conmutable','int_cruce','int_toma','pulsador','toma_doble','toma_gfci','toma_220','aplique','timbre'];
-let altDown=false, clip=null, hoverKey='';
+let altDown=false, clip=null, hoverKey='', measure=null;
 let drag=null, wireDraft=null, wallDraft=null, mouseW={x:0,y:0}, spaceDown=false, simRes=null, fileHandle=null, sideTab='prop';
 
 const dev=id=>state.devices.find(d=>d.id===id);
@@ -521,8 +538,19 @@ function fixState(){
  cleanWires();
 }
 function cleanWires(){state.wires=state.wires.filter(w=>{const a=dev(w.a.d),b=dev(w.b.d);return a&&b&&termsOf(a).some(t=>t.k===w.a.t)&&termsOf(b).some(t=>t.k===w.b.t)})}
-function saveLocal(){try{localStorage.setItem('disenoElectrico.v1',JSON.stringify(state));const t=new Date();$('#saved').textContent='✔ Guardado '+t.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}catch(e){$('#saved').textContent=''}}
-function loadLocal(){try{const s=localStorage.getItem('disenoElectrico.v1');if(s){state=JSON.parse(s);fixState();return true}}catch(e){}return false}
+const LIBK='disenoElectrico.lib', PKEY=id=>'disenoElectrico.p.'+id;
+function libIndex(){try{return JSON.parse(localStorage.getItem(LIBK)||'[]')}catch(e){return []}}
+function libPut(entry){const ix=libIndex().filter(x=>x.id!==entry.id);ix.push(entry);localStorage.setItem(LIBK,JSON.stringify(ix))}
+let quotaWarned=false;
+function saveLocal(){
+ if(SANDBOX) return;
+ try{
+  if(!state.pid) state.pid=uid();
+  localStorage.setItem(PKEY(state.pid),JSON.stringify(state)); localStorage.setItem('disenoElectrico.cur',state.pid);
+  libPut({id:state.pid,name:state.name,t:Date.now(),rooms:state.rooms.length,devs:state.devices.filter(isElec).length});
+  const t=new Date();$('#saved').textContent='✔ Guardado '+t.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}
+ catch(e){$('#saved').textContent='⚠ Sin guardar';if(!quotaWarned){quotaWarned=true;toast('No se pudo guardar en este equipo (espacio lleno, quizás por una imagen de fondo muy grande). Use Guardar para descargar el archivo.',true)}}}
+function loadLocal(){try{const cur=localStorage.getItem('disenoElectrico.cur'),s=(cur&&localStorage.getItem(PKEY(cur)))||localStorage.getItem('disenoElectrico.v1');if(s){state=JSON.parse(s);fixState();if(!state.pid)state.pid=uid();saveLocal();return true}}catch(e){}return false}
 
 // =====================================================================
 //  Geometría de bornes
@@ -541,7 +569,7 @@ const scaleOf=d=>CAT[d.type].arch?1:state.iconScale;
 function local2w(d,x,y){const s=scaleOf(d),a=(d.r||0)*Math.PI/180;x*=s;y*=s;return{x:d.x+x*Math.cos(a)-y*Math.sin(a),y:d.y+x*Math.sin(a)+y*Math.cos(a)}}
 function w2local(d,p){const s=scaleOf(d),a=-(d.r||0)*Math.PI/180,dx=p.x-d.x,dy=p.y-d.y;return{x:(dx*Math.cos(a)-dy*Math.sin(a))/s,y:(dx*Math.sin(a)+dy*Math.cos(a))/s}}
 function tpos(d,k){const t=termsOf(d).find(t=>t.k===k);return t?local2w(d,t.x,t.y):{x:d.x,y:d.y}}
-function bbOf(d){const c=CAT[d.type]; if(d.type==='tablero'){const g=panelGeom(state.circuits);return[g.W+14,g.H+14]} if(c.furn) return [c.furn[0]+6,c.furn[1]+6]; if(c.arch) return [(d.w||c.dw||100)+6,d.type==='puerta'?(d.w||90)*2+6:d.type==='puerta_doble'?(d.w||140)+6:22]; return c.bb||[40,40]}
+function bbOf(d){const c=CAT[d.type]; if(d.type==='tablero'){const g=panelGeom(state.circuits);return[g.W+14,g.H+14]} if(c.furn) return [c.furn[0]+6,c.furn[1]+6]; if(d.type==='nota'){const fs=d.fs||14,L=String(d.text||'Nota').split('\n');return [Math.max(...L.map(l=>l.length))*fs*.56+20,L.length*fs*1.25+14]} if(c.arch) return [(d.w||c.dw||100)+6,d.type==='puerta'?(d.w||90)*2+6:d.type==='puerta_doble'?(d.w||140)+6:22]; return c.bb||[40,40]}
 function wirePts(w){const a=dev(w.a.d),b=dev(w.b.d);return [tpos(a,w.a.t),...w.pts.map(p=>({x:p[0],y:p[1]})),tpos(b,w.b.t)]}
 function wireLen(w){const p=wirePts(w);let L=0;for(let i=1;i<p.length;i++)L+=dist(p[i-1],p[i]);return L}
 let RW=[];
@@ -784,6 +812,10 @@ function renderOv(){
  if(drag&&drag.t==='rsel'){const a=drag.a,b=drag.b;pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${Math.abs(b.x-a.x)}" height="${Math.abs(b.y-a.y)}" fill="rgba(30,136,229,.08)" stroke="#1e88e5" stroke-width="${1/z}" stroke-dasharray="${4/z}"/>`}
  if(drag&&drag.t==='room'){const a=drag.a,b=drag.b,w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y),ov=state.rooms.some(r=>rectOverlap({x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w,h},r));pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${w}" height="${h}" fill="${ov?'rgba(229,57,53,.15)':'rgba(255,193,7,.15)'}" stroke="${ov?'#e53935':'#f9a825'}" stroke-width="${2/z}"/><text x="${(a.x+b.x)/2}" y="${(a.y+b.y)/2}" font-size="${13/z}" text-anchor="middle" fill="#e65100" font-weight="700">${f1(w/100)} × ${f1(h/100)} m</text>`}
  if(mode==='wall'&&wallDraft){const q=snapWall(mouseW,false);pv+=`<line x1="${wallDraft.x}" y1="${wallDraft.y}" x2="${q.x}" y2="${q.y}" stroke="#3e4a55" stroke-width="15" opacity=".5" stroke-linecap="square"/><text x="${(wallDraft.x+q.x)/2}" y="${(wallDraft.y+q.y)/2-14}" font-size="${12/z}" text-anchor="middle" fill="#1565c0" font-weight="700">${f1(dist(wallDraft,q)/100)} m</text>`}
+ if(mode==='measure'&&measure){const a=measure.a,b=measure.b||snapRoom(mouseW),L=dist(a,b),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+  pv+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#d81b60" stroke-width="${2/z}"/><circle cx="${a.x}" cy="${a.y}" r="${4/z}" fill="#d81b60"/><circle cx="${b.x}" cy="${b.y}" r="${4/z}" fill="#d81b60"/>`+
+   `<rect x="${mx-38/z}" y="${my-24/z}" width="${76/z}" height="${18/z}" rx="${4/z}" fill="#d81b60"/><text x="${mx}" y="${my-11/z}" font-size="${12/z}" fill="#fff" text-anchor="middle" font-weight="700">${f1(L/100)} m</text>`+
+   (Math.abs(a.x-b.x)>1&&Math.abs(a.y-b.y)>1?`<text x="${mx}" y="${my+14/z}" font-size="${10/z}" fill="#d81b60" text-anchor="middle">↔ ${f1(Math.abs(b.x-a.x)/100)} m · ↕ ${f1(Math.abs(b.y-a.y)/100)} m</text>`:'')}
  if(mode==='wall'){const q=snapWall(mouseW,false);pv+=`<circle cx="${q.x}" cy="${q.y}" r="${4/z}" fill="#1e88e5"/>`}
  if(mode==='wire'&&wireDraft){const a=dev(wireDraft.a.d); const P=[tpos(a,wireDraft.a.t),...wireDraft.pts.map(p=>({x:p[0],y:p[1]}))]; const last=P[P.length-1]; const m=snapP(mouseW); const q=Math.abs(m.x-last.x)>Math.abs(m.y-last.y)?{x:m.x,y:last.y}:{x:last.x,y:m.y}; P.push(q);
   const col=COLORS[draftColor()]||COLORS.negro; pv+=`<polyline points="${P.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${col.o}" stroke-width="3.6" opacity=".6" stroke-linejoin="round"/><polyline points="${P.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${col.c}" stroke-width="2.4" stroke-dasharray="6 3" stroke-linejoin="round"/>`}
@@ -833,11 +865,12 @@ const HINTS={
  wall:'Clic para iniciar el muro y clic en cada esquina · Clic dos veces en el mismo punto, clic derecho o Esc para terminar · Shift: ángulo libre',
  room:'Arrastre para dibujar el espacio (se alinea con los espacios vecinos). Los muros y medidas aparecen solos. Elija el tipo en la paleta izquierda (pestaña Plano).',
  wire:'Clic en un borne o SOBRE UN CABLE (crea una derivación) para iniciar · clics intermedios para doblar el cable · clic en otro borne para terminar · Retroceso: quita el último punto · Esc: cancelar',
+ measure:'MEDIR: clic en el punto inicial y clic en el punto final (se pega a esquinas y bordes) · Esc para terminar',
  sim:'SIMULACIÓN: clic en interruptores para accionarlos · clic en tomacorrientes para conectar aparatos · T: ver el tablero con sus tacos',
  place:'Clic para colocar · Se pega al muro más cercano (Alt: libre) · Puertas: abren hacia el lado del ratón · R: rotar · Esc: terminar'
 };
 function setMode(m){
- mode=m; wireDraft=null; wallDraft=null;
+ mode=m; wireDraft=null; wallDraft=null; if(m!=='measure') measure=null;
  if(m==='sim'&&getPanel()&&!pv.autoOpened&&!pv.open){pv.autoOpened=true;setTimeout(()=>toast('Consejo: pulse 🗄 Tablero (tecla T) para ver los tacos, el medidor y las corrientes mientras simula.'),50)}
  if(m!=='place') placeType=null;
  if(m==='room'&&!settings.roomType) settings.roomType='alcoba';
@@ -883,6 +916,7 @@ svg.addEventListener('pointerdown',e=>{
  if(mode==='room'){const q=snapRoom(p);drag={t:'room',a:q,b:q};return}
  if(mode==='place') return placeAt(ps,p,e.altKey);
  if(mode==='wire') return wireClick(H,ps,p);
+ if(mode==='measure'){const q=e.shiftKey?ps:snapRoom(p);if(!measure||measure.b)measure={a:q,b:null};else measure.b=q;renderOv();return}
  selectDown(e,H,p,ps);
 });
 function snapRoom(p,except){
@@ -930,7 +964,7 @@ window.addEventListener('pointermove',e=>{
  const p=toWorld(e); mouseW=p; altDown=e.altKey;
  $('#coords').textContent=`x ${f1(p.x/100)} m · y ${f1(p.y/100)} m`;
  if(!drag) hoverInfo(e);
- if(!drag){ if(['wall','wire','place'].includes(mode)) renderOv(); return }
+ if(!drag){ if(['wall','wire','place','measure'].includes(mode)) renderOv(); return }
  const ps=snapP(p);
  switch(drag.t){
   case 'pan': state.view.x=drag.vx+e.clientX-drag.cx; state.view.y=drag.vy+e.clientY-drag.cy; $('#world').setAttribute('transform',`translate(${state.view.x} ${state.view.y}) scale(${state.view.z})`); return;
@@ -1059,6 +1093,7 @@ function placeAt(ps,p,alt){
  const d={id:uid(),type:placeType,x:ws?ws.x:ps.x,y:ws?ws.y:ps.y,r:ws?ws.r:placeRot,st:Array(CAT[placeType].sw||0).fill(false)};
  if(CAT[placeType].va!=null) d.va=CAT[placeType].va;
  if(CAT[placeType].dw) d.w=CAT[placeType].dw;
+ if(placeType==='nota'){d.text='Nota';d.fs=14;sideTab='prop';setTimeout(()=>{setMode('select');const t=$('#dTxt');if(t){t.focus();t.select()}},0)}
  if(placeType==='tablero'&&!state.circuits.length) defaultCircuits();
  state.devices.push(d);
  if(isElec(d)) d.c=defaultCircuit(d);
@@ -1157,6 +1192,8 @@ window.addEventListener('keydown',e=>{
  const k=e.key.toLowerCase();
  if(k==='r'){if(mode==='place'){placeRot=(placeRot+90)%360;renderOv()}else rotSel();return}
  if(k==='t'){pv.open?closePview():openPview();return}
+ if(k==='d'){setMode(mode==='measure'?'select':'measure');return}
+ if(e.key==='?'||e.key==='F1'){e.preventDefault();shortcuts();return}
  if(k==='v')setMode('select'); if(k==='m')setMode('wall'); if(k==='h')setMode('room'); if(k==='c')setMode('wire'); if(k==='s')setMode(mode==='sim'?'select':'sim');
 });
 window.addEventListener('keyup',e=>{if(e.key===' ')spaceDown=false;if(e.key==='Alt'){altDown=false;renderOv()}});
@@ -1417,6 +1454,7 @@ function check(){
   if(L.overflow.size) E(`${panelDesc()}: no alcanza para todos los tacos (se necesitan más ${P.style==='riel'?'módulos':'espacios'}). Escoja un tablero más grande o use tacos dobles tándem si el tablero lo permite.`);
   else if(L.used/L.total>.9) I(`El tablero queda casi lleno (${L.used} de ${L.total}). Se recomienda dejar espacios de reserva para ampliaciones.`);
   if(state.circuits.some(c=>c.bk==='tandem')) I('Hay tacos dobles (tándem): solo se permiten en tableros fabricados para recibirlos; verifique la ficha del fabricante.');}
+ {const VD=vdrops(); state.circuits.forEach((c,i)=>{const v=VD[c.id]; if(v&&v.vd>3) W(`C${i+1} (${c.name}): caída de tensión de ${f1(v.vd)} % hasta la salida más lejana (${f0(v.L)} m de cable). Se recomienda máximo 3 % en circuitos ramales: use un calibre mayor o reparta la carga. [NTC 2050 Secc. 210-19, nota]`,'c:'+c.id)})}
  const hasRoom=t=>state.rooms.some(r=>r.type===t);
  if(hasRoom('cocina')&&state.circuits.filter(c=>c.kind==='cocina'&&c.breaker>=20).length<2) E('La cocina requiere mínimo DOS circuitos de 20 A para pequeños artefactos. [NTC 2050 Secc. 210-11(c)(1) y 210-52(b)]');
  if(hasRoom('lavadero')&&!state.circuits.some(c=>c.kind==='lavanderia')) E('Se requiere un circuito de 20 A exclusivo para la zona de lavandería. [NTC 2050 Secc. 210-11(c)(2)]');
@@ -1474,6 +1512,25 @@ function check(){
 // =====================================================================
 //  Cuadro de cargas y materiales
 // =====================================================================
+const OHM_KM={'14':8.45,'12':5.31,'10':3.34,'8':2.10,'6':1.32,'4':0.83};
+function vdrops(){
+ // camino más largo (por los cables) desde el taco hasta la salida más lejana de cada circuito
+ const P=getPanel(), out={}; if(!P||!state.wires.length) return out;
+ const adj=new Map(), add=(a,b,w)=>{(adj.get(a)||adj.set(a,[]).get(a)).push([b,w]);(adj.get(b)||adj.set(b,[]).get(b)).push([a,w])};
+ state.wires.forEach(w=>add(w.a.d+':'+w.a.t,w.b.d+':'+w.b.t,wireLen(w)/100));
+ const ALL={int_sencillo:[['COM','S']],pulsador:[['COM','S']],int_doble:[['COM','S1'],['COM','S2']],int_triple:[['COM','S1'],['COM','S2'],['COM','S3']],int_conmutable:[['COM','V1'],['COM','V2']],int_cruce:[['A1','B1'],['A1','B2'],['A2','B1'],['A2','B2']],int_toma:[['L','S']]};
+ state.devices.forEach(d=>(ALL[d.type]||[]).forEach(([a,b])=>add(d.id+':'+a,d.id+':'+b,0)));
+ const LT=loadTable();
+ state.circuits.forEach(c=>{
+  const dist0=new Map([[P.id+':C'+c.id+'a',0]]), q=[P.id+':C'+c.id+'a'];
+  while(q.length){q.sort((a,b)=>dist0.get(b)-dist0.get(a));const u=q.pop(),du=dist0.get(u);(adj.get(u)||[]).forEach(([v,w])=>{if(du+w<(dist0.has(v)?dist0.get(v):1e9)){dist0.set(v,du+w);q.push(v)}})}
+  let L=0; state.devices.filter(d=>d.c===c.id).forEach(d=>['F','L','F1'].forEach(k=>{const v=dist0.get(d.id+':'+k);if(v!=null)L=Math.max(L,v)}));
+  if(!L) return;
+  L+=2.5; const r=LT.rows.find(x=>x.c===c), I=r?r.I:0, V=c.poles==2?240:120, R_=OHM_KM[c.gauge]||5.31;
+  out[c.id]={L,vd:2*L*I*R_/1000/V*100};
+ });
+ return out;
+}
 function loadTable(){
  const rows=state.circuits.map((c,i)=>{const ds=state.devices.filter(d=>d.c===c.id); const va=ds.reduce((s,d)=>s+(+d.va||0),0); const V=c.poles==2?240:120;
   return {c,i,il:ds.filter(isLight).length,to:ds.filter(isOutlet).length,es:ds.filter(d=>CAT[d.type].kind==='t220').length,va,V,I:va/V}});
@@ -1558,6 +1615,8 @@ function sideProp(B){
  h+=`<h3>📐 Proyecto</h3>`+row('Nombre',`<input id="pName" value="${esc(state.name)}">`)+
   row('Tamaño de íconos',`<input id="pScale" type="range" min=".5" max="2" step=".1" value="${state.iconScale}">`)+
   row('Ajuste a cuadrícula',`<select id="pSnap">${[1,5,10,25,50].map(v=>`<option ${v==settings.snap?'selected':''} value="${v}">${v} cm</option>`).join('')}</select>`);
+ const INF=state.info||{};
+ h+=`<h4>Datos para el rótulo de los planos</h4>`+[['dir','Dirección'],['prop','Propietario'],['dis','Diseñó'],['mat','Matrícula profesional'],['ciu','Ciudad']].map(([k,l])=>row(l,`<input data-inf="${k}" value="${esc(INF[k]||'')}">`)).join('');
  h+=`<h4>Plano base (imagen de fondo)</h4><div class="note">Puede cargar una foto o escaneo del plano arquitectónico y dibujar encima. También puede dibujar los muros con 🧱 y los espacios con ⬚.</div>`;
  if(state.bg) h+=row('Ancho real (m)',`<input id="bgW" type="number" step=".1" value="${f1(state.bg.w/100).replace(',','.')}">`)+row('Opacidad',`<input id="bgO" type="range" min=".1" max="1" step=".05" value="${state.bg.op}">`)+row('Posición x / y (m)',`<div style="display:flex;gap:4px"><input id="bgX" type="number" step=".1" value="${state.bg.x/100}"><input id="bgY" type="number" step=".1" value="${state.bg.y/100}"></div>`);
  h+=`<div class="btnrow"><button class="btn" id="bgLoad">🖼 ${state.bg?'Cambiar':'Cargar'} imagen</button>${state.bg?'<button class="btn danger" id="bgDel">Quitar imagen</button>':''}</div>`;
@@ -1567,6 +1626,7 @@ function sideProp(B){
  B.innerHTML=h;
  B.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>steps[+b.dataset.step][3]());
  $('#pName').onchange=e=>{state.name=e.target.value;changed()};
+ B.querySelectorAll('[data-inf]').forEach(el=>el.onchange=()=>{state.info=state.info||{};state.info[el.dataset.inf]=el.value;saveLocal()});
  $('#pScale').onchange=e=>upd(()=>state.iconScale=+e.target.value);
  $('#pSnap').onchange=e=>{settings.snap=+e.target.value};
  $('#bgLoad').onclick=()=>$('#imgIn').click();
@@ -1579,11 +1639,12 @@ function sideProp(B){
 function propDevice(B,d){
  const C=CAT[d.type]; let h=`<h3>${thumb(d.type,46)} ${esc(C.n)}</h3>`;
  if(C.arch){
+  if(d.type==='nota') h+=`<label style="color:var(--mu)">Texto</label><textarea id="dTxt" rows="4" style="width:100%;border:1px solid #c9d1db;border-radius:4px;padding:5px;font:inherit">${esc(d.text||'')}</textarea>`+row('Tamaño',`<div class="rchips">${[10,14,20,28].map(f=>`<button data-fs="${f}" class="${f==(d.fs||14)?'on':''}">${f}</button>`).join('')}</div>`);
   if(C.open) h+=row('Ancho',`<div class="rchips">${C.ws.map(w=>`<button data-dw="${w}" class="${w==d.w?'on':''}">${w} cm</button>`).join('')}</div>`)+row('Otro ancho (cm)',`<input id="dW" type="number" value="${d.w}">`);
   if(C.furn) h+=row('Tamaño',`${C.furn[0]} × ${C.furn[1]} cm`);
   h+=`<div class="btnrow">${d.type==='puerta'?'<button class="btn" id="dFlip">⇋ Invertir bisagra</button>':''}${C.open&&d.type!=='ventana'?'<button class="btn" id="dSide">⇅ Abrir hacia el otro lado</button>':''}<button class="btn" id="dRot">⟳ Rotar 90°</button><button class="btn" id="dDup">⧉ Duplicar</button><button class="btn danger" id="dDel">Eliminar</button></div>`;
   h+=`<div class="note">${C.open?'Las puertas y ventanas se pegan solas al muro más cercano. La puerta abre hacia el lado donde está el ratón al colocarla.':'Los muebles se pegan al muro con su respaldo (Alt para ubicarlos libremente). Sirven de referencia para ubicar tomacorrientes y luces.'}</div>`;
-  B.innerHTML=h; if($('#dW'))$('#dW').onchange=e=>upd(()=>d.w=+e.target.value); B.querySelectorAll('[data-dw]').forEach(b=>b.onclick=()=>upd(()=>d.w=+b.dataset.dw));
+  B.innerHTML=h; if($('#dTxt'))$('#dTxt').onchange=e=>upd(()=>d.text=e.target.value); B.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>upd(()=>d.fs=+b.dataset.fs)); if($('#dW'))$('#dW').onchange=e=>upd(()=>d.w=+e.target.value); B.querySelectorAll('[data-dw]').forEach(b=>b.onclick=()=>upd(()=>d.w=+b.dataset.dw));
   if($('#dFlip'))$('#dFlip').onclick=()=>upd(()=>d.flip=!d.flip); if($('#dSide'))$('#dSide').onclick=()=>upd(()=>{d.r=(d.r+180)%360;d.flip=!d.flip});
   $('#dRot').onclick=rotSel; $('#dDel').onclick=delSel; $('#dDup').onclick=duplicate; return;
  }
@@ -1662,9 +1723,11 @@ function sidePanel(B){
  });
  h+=`<div class="btnrow"><select id="newK">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('')}</select><button class="btn pri" id="addC">+ Agregar circuito</button></div>`;
  h+=`<div class="note">La <b>fase</b> (A o B) la define la fila donde está el taco: las filas se alternan A, B, A, B… Para balancear, arrastre los tacos en la vista del tablero real.<br><br>Calibre mínimo según breaker (cobre, NTC 2050): 15 A → 14 AWG · 20 A → 12 AWG · 30 A → 10 AWG · 40 A → 8 AWG. Al cambiar el tipo de circuito se ajustan breaker y calibre recomendados.</div>`;
- h+=`<h4>Cuadro de cargas</h4><table class="t"><tr><th>Circ.</th><th>Ilum.</th><th>Tomas</th><th>Esp.</th><th>VA</th><th>A</th><th>Brk</th><th>AWG</th><th>Fase</th></tr>`+
-  LT.rows.map(r=>`<tr><td>C${r.i+1}</td><td class="n">${r.il}</td><td class="n">${r.to}</td><td class="n">${r.es}</td><td class="n">${f0(r.va)}</td><td class="n" style="${r.I>r.c.breaker*.8?'color:#c62828;font-weight:700':''}">${f1(r.I)}</td><td class="n">${r.c.poles==2?'2x':''}${r.c.breaker}</td><td class="n">${r.c.gauge}</td><td>${r.c.poles==2?'A-B':r.c.fase}</td></tr>`).join('')+
-  `<tr><th colspan="4">Total instalado</th><th class="n">${f0(LT.gen+LT.esp)}</th><th colspan="4"></th></tr></table>`;
+ const VD=vdrops();
+ h+=`<div class="btnrow"><button class="btn" id="openUni">📐 Ver diagrama unifilar</button></div>`;
+ h+=`<h4>Cuadro de cargas</h4><table class="t"><tr><th>Circ.</th><th>Ilum.</th><th>Tomas</th><th>Esp.</th><th>VA</th><th>A</th><th>Brk</th><th>AWG</th><th>Fase</th><th title="Caída de tensión hasta la salida más lejana">ΔV</th></tr>`+
+  LT.rows.map(r=>{const v=VD[r.c.id];return `<tr><td>C${r.i+1}</td><td class="n">${r.il}</td><td class="n">${r.to}</td><td class="n">${r.es}</td><td class="n">${f0(r.va)}</td><td class="n" style="${r.I>r.c.breaker*.8?'color:#c62828;font-weight:700':''}">${f1(r.I)}</td><td class="n">${r.c.poles==2?'2x':''}${r.c.breaker}</td><td class="n">${r.c.gauge}</td><td>${r.c.poles==2?'A-B':r.c.fase}</td><td class="n" style="${v&&v.vd>3?'color:#c62828;font-weight:700':''}" title="${v?f0(v.L)+' m':''}">${v?f1(v.vd)+'%':'—'}</td></tr>`}).join('')+
+  `<tr><th colspan="4">Total instalado</th><th class="n">${f0(LT.gen+LT.esp)}</th><th colspan="5"></th></tr></table><div class="note">ΔV: caída de tensión desde el taco hasta la salida más lejana, calculada con la longitud de los cables dibujados (+2,5 m de bajantes). Recomendado ≤ 3 % por circuito.</div>`;
  const des=LT.A+LT.B?Math.abs(LT.A-LT.B)/Math.max(LT.A,LT.B)*100:0;
  h+=`<h4>Balance de fases y demanda</h4><table class="t">
   <tr><td>Carga en fase A</td><td class="n">${f0(LT.A)} VA</td></tr><tr><td>Carga en fase B</td><td class="n">${f0(LT.B)} VA</td></tr>
@@ -1684,7 +1747,7 @@ function sidePanel(B){
  B.querySelectorAll('[data-cdel]').forEach(el=>el.onclick=()=>{const c=circ(el.dataset.cdel);if(!confirm(`¿Eliminar el circuito ${cName(c.id)} «${c.name}»? Sus cables del tablero se borrarán.`))return;
   upd(()=>{state.circuits=state.circuits.filter(x=>x!==c);state.devices.forEach(d=>{if(d.c===c.id)d.c=null});cleanWires()})});
  $('#addC').onclick=()=>upd(()=>addCircuit($('#newK').value));
- $('#openPv').onclick=openPview; bindModel('tbm');
+ $('#openPv').onclick=openPview; $('#openUni').onclick=openUnifilar; bindModel('tbm');
  B.querySelectorAll('[data-vc]').forEach(el=>el.onclick=()=>setViewC(settings.viewC===el.dataset.vc?'':el.dataset.vc));
 }
 function sideCheck(B,iss){
@@ -1724,7 +1787,7 @@ async function saveFile(as){
  }catch(e){if(e.name==='AbortError')return}
  download(new Blob([data],{type:'application/json'}),name); toast('Proyecto descargado como «'+name+'»');
 }
-$('#fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.devices)throw 0;pushUndo();state=s;fixState();sel.clear();fileHandle=null;changed();fitView();toast('Proyecto abierto ✔')}catch(err){toast('El archivo no es un proyecto válido.',true)}};r.readAsText(f);e.target.value=''};
+$('#fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.devices)throw 0;saveLocal();state=s;state.pid=uid();fixState();resetSession();settings.ptab=undefined;buildPalette();changed();fitView();toast('Proyecto abierto ✔ (quedó también en 📂 Mis proyectos)')}catch(err){toast('El archivo no es un proyecto válido.',true)}};r.readAsText(f);e.target.value=''};
 $('#imgIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{
  const wm=parseFloat((prompt('¿Cuál es el ANCHO real que representa la imagen, en metros?','12')||'12').replace(',','.'))||12;
  upd(()=>state.bg={src:r.result,x:0,y:0,w:wm*100,h:wm*100*img.height/img.width,op:.5});fitView()};img.src=r.result};r.readAsDataURL(f);e.target.value=''};
@@ -1748,18 +1811,86 @@ function exportPNG(){
  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
 }
 function printDoc(){
- const LT=loadTable(), M=materials(), iss=check().filter(i=>i.l!=='info');
+ const LT=loadTable(), M=materials(), VD=vdrops(), iss=check().filter(i=>i.l!=='info'), INF=state.info||{}, today=new Date().toLocaleDateString('es-CO');
  const tb=(o,u='')=>Object.entries(o).map(([k,v])=>`<tr><td>${esc(k)}</td><td style="text-align:right">${v}${u}</td></tr>`).join('');
- $('#print').innerHTML=`<div class="pg"><h2 style="margin:0 0 6px">${esc(state.name)} – Plano de instalación eléctrica</h2>${exportSVG(false)}<p style="font-size:10px">Colores: fases negro/rojo · neutro blanco · tierra verde/desnudo. Generado con Diseño Eléctrico Residencial (RETIE / NTC 2050) – ${new Date().toLocaleDateString('es-CO')}.</p></div>
- <div><h2>Cuadro de cargas</h2><table class="t"><tr><th>Circuito</th><th>Descripción</th><th>Ilum.</th><th>Tomas</th><th>Esp.</th><th>Carga VA</th><th>Corriente A</th><th>Breaker</th><th>Calibre AWG</th><th>Fase</th></tr>
- ${LT.rows.map(r=>`<tr><td>C${r.i+1}</td><td>${esc(r.c.name)}</td><td>${r.il}</td><td>${r.to}</td><td>${r.es}</td><td>${f0(r.va)}</td><td>${f1(r.I)}</td><td>${r.c.poles==2?'2x':'1x'}${r.c.breaker} A${r.c.dif?' dif.':''}</td><td>${r.c.gauge}</td><td>${r.c.poles==2?'A-B':r.c.fase}</td></tr>`).join('')}</table>
- <p>Fase A: ${f0(LT.A)} VA · Fase B: ${f0(LT.B)} VA · Demanda: ${f0(LT.dem)} VA (${f1(LT.Id)} A a 240 V) · Totalizador sugerido: ${LT.tot} A</p>
- <h2>Materiales</h2><table class="t"><tr><th>Descripción</th><th>Cantidad</th></tr>${tb(M.dev)}${tb(M.boxes)}${tb(M.brk)}${tb(M.cab,' m')}</table>
- <h2>Observaciones de la revisión automática</h2>${iss.length?'<ul>'+iss.map(i=>`<li>${i.l==='error'?'❌':'⚠'} ${esc(i.m)}</li>`).join('')+'</ul>':'<p>Sin observaciones.</p>'}
- <p style="font-size:10px">Documento de apoyo. El diseño definitivo debe ser revisado y firmado por un profesional competente con matrícula, conforme al RETIE vigente y la NTC 2050.</p></div>`;
- setTimeout(()=>window.print(),50);
+ const types={}; state.devices.forEach(d=>{const C=CAT[d.type];if(C.furn||d.type==='nota')return;types[d.type]=(types[d.type]||0)+1});
+ const usedCols=[...new Set(state.wires.map(w=>w.color))];
+ const roleOf={negro:'Fase',rojo:'Fase',blanco:'Neutro',gris:'Neutro',verde:'Tierra',verdeamarillo:'Tierra',desnudo:'Tierra / SPT'}; roleOf[state.colors.retorno]=roleOf[state.colors.retorno]||'Retorno'; roleOf[state.colors.viajero]=roleOf[state.colors.viajero]||'Viajero';
+ const legend=`<div class="pl"><h4>CONVENCIONES</h4><div class="lg">${Object.entries(types).map(([k,n])=>`<div>${thumb(k,16)}<span>${esc(CAT[k].n.replace(/ \(.*\)/,''))} <b>${n}</b></span></div>`).join('')}</div>
+  <h4>CABLES</h4><table>${usedCols.map(c=>`<tr><td><span style="display:inline-block;width:26px;height:6px;border-radius:3px;background:${COLORS[c].stripe?`repeating-linear-gradient(90deg,${COLORS[c].c} 0 5px,${COLORS[c].stripe} 5px 10px)`:COLORS[c].c};border:1px solid #888"></span></td><td>${COLORS[c].n}</td><td>${roleOf[c]||''}</td></tr>`).join('')}</table></div>`;
+ const rot=(hoja,cont)=>`<table class="rot"><tr><td colspan="2" class="rt">${esc(state.name)}</td></tr><tr><td>Contenido</td><td>${cont}</td></tr><tr><td>Dirección</td><td>${esc(INF.dir||'')} ${esc(INF.ciu||'')}</td></tr><tr><td>Propietario</td><td>${esc(INF.prop||'')}</td></tr><tr><td>Diseñó</td><td>${esc(INF.dis||'')}</td></tr><tr><td>Matrícula</td><td>${esc(INF.mat||'')}</td></tr><tr><td>Fecha</td><td>${today}</td></tr><tr><td>Escala</td><td>Indicada en cotas</td></tr><tr><td>Norma</td><td>RETIE · NTC 2050</td></tr><tr><td>Hoja</td><td><b>${hoja} de 3</b></td></tr><tr><td colspan="2" style="height:34px;vertical-align:bottom;text-align:center;color:#777">Firma</td></tr></table>`;
+ $('#print').innerHTML=`<div class="pg p1"><div class="pmain">${exportSVG(false)}</div><div class="pside">${legend}${rot(1,'Plano de instalaciones eléctricas')}</div></div>
+ <div class="pg p1"><div class="pmain">${unifilarSVG()}<h3>Cuadro de cargas</h3><table class="t"><tr><th>Circ.</th><th>Descripción</th><th>Ilum.</th><th>Tomas</th><th>Esp.</th><th>Carga VA</th><th>Corriente A</th><th>Taco</th><th>Calibre AWG</th><th>Fase</th><th>Long. m</th><th>ΔV %</th></tr>
+ ${LT.rows.map(r=>{const v=VD[r.c.id];return `<tr><td>C${r.i+1}</td><td>${esc(r.c.name)}</td><td>${r.il}</td><td>${r.to}</td><td>${r.es}</td><td>${f0(r.va)}</td><td>${f1(r.I)}</td><td>${BKT[bkOf(r.c)].s} ${r.c.breaker} A</td><td>${r.c.gauge}</td><td>${r.c.poles==2?'A-B':r.c.fase}</td><td>${v?f0(v.L):'—'}</td><td>${v?f1(v.vd):'—'}</td></tr>`}).join('')}</table>
+ <p>Fase A: ${f0(LT.A)} VA · Fase B: ${f0(LT.B)} VA · Demanda: ${f0(LT.dem)} VA (${f1(LT.Id)} A a 240 V) · Totalizador: ${state.mainA} A (sugerido ${LT.tot} A)</p></div><div class="pside">${rot(2,'Diagrama unifilar y cuadro de cargas')}</div></div>
+ <div class="pg p1"><div class="pmain"><h3>Lista de materiales</h3>${(()=>{const rows=[...Object.entries(M.dev),...Object.entries(M.boxes),...Object.entries(M.brk),...Object.entries(M.cab).map(([k,v])=>[k,v+' m'])],h=Math.ceil(rows.length/2),T=a=>`<table class="t"><tr><th>Descripción</th><th>Cant.</th></tr>${a.map(([k,v])=>`<tr><td>${esc(k)}</td><td style="text-align:right">${v}</td></tr>`).join('')}</table>`;return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${T(rows.slice(0,h))}${T(rows.slice(h))}</div>`})()}
+ <h3>Observaciones de la revisión automática</h3>${iss.length?'<ul>'+iss.map(i=>`<li>${i.l==='error'?'❌':'⚠'} ${esc(i.m)}</li>`).join('')+'</ul>':'<p>Sin observaciones.</p>'}
+ <p style="font-size:10px">Documento de apoyo generado con Diseño Eléctrico Residencial v${APP_VERSION}. El diseño definitivo debe ser revisado y firmado por un profesional competente con matrícula, conforme al RETIE vigente y la NTC 2050.</p></div><div class="pside">${rot(3,'Materiales y observaciones')}</div></div>`;
+ setTimeout(()=>window.print(),80);
+}
+function resetSession(){undoS=[];redoS=[];sel=new Set();fileHandle=null;wireDraft=null;wallDraft=null;ovAcc={};settings.viewC='';pv.hoverC=''}
+function newProject(name){saveLocal();state=newState();state.pid=uid();if(name)state.name=name;resetSession();settings.ptab='plano';buildPalette();setMode('select');changed();fitView()}
+function openProject(id){const raw=localStorage.getItem(PKEY(id));if(!raw)return toast('No se encontró el proyecto.',true);saveLocal();state=JSON.parse(raw);fixState();resetSession();settings.ptab=undefined;buildPalette();setMode('select');changed();fitView();toast('Proyecto abierto: '+state.name)}
+const ago=t=>{const m=Math.round((Date.now()-t)/60000);return m<1?'hace un momento':m<60?`hace ${m} min`:m<1440?`hace ${Math.round(m/60)} h`:new Date(t).toLocaleDateString('es-CO')};
+function openLib(){
+ saveLocal(); const ix=libIndex().sort((a,b)=>b.t-a.t);
+ $('#modalBox').classList.remove('learn'); $('#modalBox').style.maxWidth='900px';
+ $('#modalBox').innerHTML=`<h2>📂 Mis proyectos</h2><p style="color:#555;margin-top:-6px">Se guardan solos en este equipo. Para llevarlos a otro computador use <b>Guardar</b> (descarga un archivo).</p>
+  <div class="btnrow"><button class="btn pri" id="lbNew">+ Proyecto nuevo</button><button class="btn" id="lbSample">🏠 Nueva casa de ejemplo</button><button class="btn" id="lbFile">📄 Abrir un archivo…</button></div>
+  <table class="t" style="font-size:13px"><tr><th>Proyecto</th><th>Modificado</th><th>Espacios</th><th>Aparatos</th><th></th></tr>${ix.map(x=>`<tr ${x.id===state.pid?'style="background:#eef4fc"':''}><td><b>${esc(x.name)}</b>${x.id===state.pid?' <span class="chip" style="background:#1565c0">abierto</span>':''}</td><td>${ago(x.t)}</td><td class="n">${x.rooms}</td><td class="n">${x.devs}</td>
+   <td style="white-space:nowrap"><button class="btn" data-lo="${x.id}" ${x.id===state.pid?'disabled':''}>Abrir</button> <button class="btn" data-ld="${x.id}">Duplicar</button> <button class="btn danger" data-lx="${x.id}">Eliminar</button></td></tr>`).join('')}</table>
+  <div class="btnrow"><button class="btn" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;
+ $('#modal').classList.add('show');
+ $('#lbNew').onclick=()=>{$('#modal').classList.remove('show');newProject('Proyecto nuevo');toast('Proyecto nuevo creado. El anterior quedó guardado en 📂 Mis proyectos.')};
+ $('#lbSample').onclick=()=>{$('#modal').classList.remove('show');saveLocal();buildSample();state.pid=uid();resetSession();settings.ptab=undefined;buildPalette();setMode('select');changed();fitView()};
+ $('#lbFile').onclick=()=>{$('#modal').classList.remove('show');$('#fileIn').click()};
+ document.querySelectorAll('[data-lo]').forEach(b=>b.onclick=()=>{$('#modal').classList.remove('show');openProject(b.dataset.lo)});
+ document.querySelectorAll('[data-ld]').forEach(b=>b.onclick=()=>{const raw=localStorage.getItem(PKEY(b.dataset.ld));if(!raw)return;const st=JSON.parse(raw);st.pid=uid();st.name=st.name+' (copia)';try{localStorage.setItem(PKEY(st.pid),JSON.stringify(st));libPut({id:st.pid,name:st.name,t:Date.now(),rooms:st.rooms.length,devs:st.devices.length})}catch(e){toast('No hay espacio para duplicar.',true)}openLib()});
+ document.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{const x=ix.find(y=>y.id===b.dataset.lx);if(!confirm(`¿Eliminar el proyecto «${x.name}»? No se puede deshacer.`))return;localStorage.removeItem(PKEY(x.id));localStorage.setItem(LIBK,JSON.stringify(libIndex().filter(y=>y.id!==x.id)));
+  if(x.id===state.pid){const other=libIndex().sort((a,b)=>b.t-a.t)[0];if(other){openProject(other.id)}else{state=newState();state.pid=uid();resetSession();changed()}}openLib()});
+}
+function shortcuts(){
+ $('#modalBox').classList.remove('learn'); $('#modalBox').style.maxWidth='';
+ const K=(k,d)=>`<tr><td style="white-space:nowrap"><span class="term">${k}</span></td><td>${d}</td></tr>`;
+ $('#modalBox').innerHTML=`<h2>⌨ Atajos de teclado</h2><div class="cols" style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><table class="t">${K('V','Seleccionar')+K('H','Dibujar espacio')+K('M','Muro suelto')+K('C','Cable')+K('D','Medir')+K('S','Simular')+K('T','Ver tablero real')+K('R','Rotar')+K('Supr','Eliminar')+K('Esc','Cancelar / terminar')}</table>
+ <table class="t">${K('Ctrl+Z / Ctrl+Y','Deshacer / rehacer')+K('Ctrl+C / Ctrl+V','Copiar / pegar donde está el ratón')+K('Ctrl+D','Duplicar')+K('Ctrl+A','Seleccionar todos los aparatos')+K('Ctrl+S','Guardar archivo')+K('Flechas','Mover fino (Shift: 50 cm)')+K('Alt','Ubicar o mover sin imán')+K('Espacio + arrastrar','Desplazar la vista')+K('Rueda','Zoom')+K('Doble clic','Renombrar espacio / abrir tablero')+K('Clic derecho','Menú de opciones')+K('? o F1','Esta ayuda')}</table></div>
+ <div class="btnrow"><button class="btn pri" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;
+ $('#modal').classList.add('show');
+}
+function unifilarSVG(){
+ const cs=state.circuits, LT=loadTable(), n=cs.length, SP=96, W=Math.max(760,260+n*SP), H=560, X0=230, BUS=230;
+ const t=(x,y,s,fs=11,a='middle',w='600',c='#263238')=>`<text x="${x}" y="${y}" font-size="${fs}" text-anchor="${a}" font-weight="${w}" fill="${c}" font-family="Segoe UI,Arial">${esc(String(s))}</text>`;
+ const brk=(x,y,lab)=>`<line x1="${x}" y1="${y}" x2="${x}" y2="${y+12}" stroke="#263238" stroke-width="2"/><line x1="${x}" y1="${y+12}" x2="${x+11}" y2="${y+34}" stroke="#263238" stroke-width="2"/><line x1="${x-5}" y1="${y+7}" x2="${x+5}" y2="${y+17}" stroke="#263238" stroke-width="2"/><line x1="${x+5}" y1="${y+7}" x2="${x-5}" y2="${y+17}" stroke="#263238" stroke-width="2"/><line x1="${x}" y1="${y+34}" x2="${x}" y2="${y+46}" stroke="#263238" stroke-width="2"/>`+t(x+16,y+28,lab,10,'start','700');
+ let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="background:#fff"><rect x="1" y="1" width="${W-2}" height="${H-2}" fill="#fff" stroke="#cfd6de"/>`+t(W/2,24,'DIAGRAMA UNIFILAR – '+state.name,15,'middle','800');
+ // red, medidor, totalizador
+ s+=`<rect x="40" y="44" width="110" height="30" rx="4" fill="#eceff1" stroke="#263238"/>`+t(95,64,'Red del operador',10)+`<line x1="95" y1="74" x2="95" y2="96" stroke="#263238" stroke-width="2"/>`+
+  `<circle cx="95" cy="114" r="18" fill="#fff" stroke="#263238" stroke-width="2"/>`+t(95,118,'kWh',10,'middle','800')+t(122,118,'Medidor',10,'start','500')+
+  `<line x1="95" y1="132" x2="95" y2="146" stroke="#263238" stroke-width="2"/>`+t(104,142,'Acometida 120/240 V',9,'start','500','#455a64')+brk(95,146,`Totalizador 2P ${state.mainA} A`)+
+  `<line x1="95" y1="192" x2="95" y2="${BUS}" stroke="#263238" stroke-width="2"/>`;
+ // barraje
+ s+=`<line x1="60" y1="${BUS}" x2="${W-30}" y2="${BUS}" stroke="#263238" stroke-width="5"/>`+t(64,BUS-8,'Barraje 120/240 V – '+panelDesc(),10,'start','700','#455a64');
+ // puesta a tierra
+ s+=`<line x1="60" y1="${BUS}" x2="60" y2="${BUS+90}" stroke="#2e7d32" stroke-width="2" stroke-dasharray="5 3"/><line x1="46" y1="${BUS+90}" x2="74" y2="${BUS+90}" stroke="#2e7d32" stroke-width="2"/><line x1="51" y1="${BUS+96}" x2="69" y2="${BUS+96}" stroke="#2e7d32" stroke-width="2"/><line x1="56" y1="${BUS+102}" x2="64" y2="${BUS+102}" stroke="#2e7d32" stroke-width="2"/>`+t(60,BUS+118,'SPT',10,'middle','700','#2e7d32')+t(60,BUS+130,'varilla Cu',9,'middle','500','#2e7d32');
+ cs.forEach((c,i)=>{const x=X0+i*SP, r=LT.rows[i], cond=c.poles==2?`2F+T`:`F+N+T`;
+  s+=`<line x1="${x}" y1="${BUS}" x2="${x}" y2="${BUS+20}" stroke="#263238" stroke-width="2"/>`+brk(x,BUS+20,`${c.poles==2?'2P':'1P'} ${c.breaker}A`)+(c.dif?t(x+16,BUS+44,'diferencial',8,'start','600','#1e5bc6'):'')+
+   `<line x1="${x}" y1="${BUS+66}" x2="${x}" y2="${BUS+150}" stroke="#263238" stroke-width="2"/>`+`<text x="${x-6}" y="${BUS+140}" font-size="9.5" fill="#455a64" font-family="Segoe UI,Arial" transform="rotate(-90 ${x-6} ${BUS+140})">${cond} ${c.gauge} AWG Cu</text>`+
+   `<rect x="${x-SP/2+4}" y="${BUS+150}" width="${SP-8}" height="104" rx="5" fill="${CCOL[i%CCOL.length]}12" stroke="${CCOL[i%CCOL.length]}" stroke-width="1.5"/>`+
+   t(x,BUS+168,'C'+(i+1),13,'middle','800',CCOL[i%CCOL.length]);
+  const words=c.name.split(' '),lines=[];let cur='';words.forEach(w=>{if((cur+' '+w).trim().length>13){lines.push(cur.trim());cur=w}else cur+=' '+w});lines.push(cur.trim());
+  lines.slice(0,3).forEach((l,k)=>s+=t(x,BUS+184+k*12,l,9.5,'middle','600'));
+  s+=t(x,BUS+226,f0(r.va)+' VA',9.5,'middle','700','#37474f')+t(x,BUS+239,f1(r.I)+' A · '+(c.poles==2?'A-B':'Fase '+c.fase),9,'middle','500','#546e7a')+t(x,BUS+250,`${r.il} ilum · ${r.to} tomas`,8.5,'middle','500','#78909c');
+ });
+ s+=t(40,H-40,`Carga instalada: ${f0(LT.gen+LT.esp)} VA · Demanda: ${f0(LT.dem)} VA (${f1(LT.Id)} A a 240 V) · Fase A: ${f0(LT.A)} VA · Fase B: ${f0(LT.B)} VA`,10.5,'start','600','#37474f')+
+  t(40,H-22,'Conductores de cobre THHN/THWN · Código de colores RETIE: fases negro/rojo, neutro blanco, tierra verde o desnudo.',9.5,'start','500','#607d8b');
+ return s+'</svg>';
+}
+function openUnifilar(){
+ $('#modalBox').classList.remove('learn');
+ $('#modalBox').innerHTML=`<h2>📐 Diagrama unifilar</h2><p style="color:#555;margin-top:-6px">Se genera solo a partir del tablero y los circuitos. Se incluye al imprimir o guardar como PDF.</p><div style="overflow:auto;border:1px solid #dde3ea;border-radius:8px">${unifilarSVG()}</div><div class="btnrow"><button class="btn pri" onclick="$('#modal').classList.remove('show');printDoc()">🖨 Imprimir / PDF</button><button class="btn" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;
+ $('#modalBox').style.maxWidth='1100px'; $('#modal').classList.add('show');
 }
 function help(){
+ $('#modalBox').style.maxWidth='';
  $('#modalBox').classList.remove('learn');
  $('#modalBox').innerHTML=`<h2>Guía rápida</h2>
  <ol>
@@ -1770,7 +1901,7 @@ function help(){
  <li><b>Conexión automática:</b> seleccione varios aparatos (Shift+clic o recuadro) y pulse <b>⚙ Conexión automática</b>. Ejemplos: un bombillo y un interruptor; un bombillo y dos conmutables (2 sitios); un bombillo, dos conmutables y un cruce (3 sitios); varios tomacorrientes.</li>
  <li><b>▶ Simular:</b> accione interruptores y breakers y vea qué se enciende. Si hay un cortocircuito el breaker se dispara.</li>
  <li><b>Revisión:</b> la pestaña Revisión lista los incumplimientos detectados (RETIE / NTC 2050). Haga clic en uno para ubicarlo.</li>
- <li><b>Guardar / Imprimir:</b> el trabajo se guarda solo en este equipo, y con <b>Guardar</b> lo exporta a un archivo. <b>Imprimir / PDF</b> genera el plano, el cuadro de cargas y los materiales.</li>
+ <li><b>Guardar / Imprimir:</b> cada proyecto se guarda solo en este equipo (📂 <b>Mis proyectos</b>), y con <b>Guardar</b> lo exporta a un archivo. <b>Imprimir / PDF</b> genera 3 hojas con rótulo: plano con convenciones, diagrama unifilar con cuadro de cargas y caída de tensión, y materiales. Llene los datos del rótulo en Propiedades (sin nada seleccionado).</li>
  </ol>
  <p style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:8px">¿No conoce un término (COM, S1, viajero, retorno, tándem…)? Abra <b>📖 Guías y glosario</b> en la barra superior: tiene guías paso a paso de las instalaciones más comunes con un botón para insertarlas en su plano y probarlas.</p>
  <h3>Atajos</h3><p>V seleccionar · M muro · H espacio · C cable · S simular · R rotar · Supr eliminar · Ctrl+Z / Ctrl+Y deshacer / rehacer · Ctrl+C / Ctrl+V copiar y pegar (donde esté el ratón) · Ctrl+D duplicar · Flechas mover fino (Shift: 50 cm) · Ctrl+S guardar · Rueda zoom · Espacio+arrastrar desplazar · Esc terminar.</p>
@@ -1938,7 +2069,7 @@ function guideInsert(g,sim){
  else toast('Ejemplo insertado en el plano. Pulse ▶ Simular para probarlo.');
 }
 let learnTab='guias', learnGuide='sencillo', learnQ='';
-function openLearn(tab,gid){if(tab)learnTab=tab;if(gid)learnGuide=gid;$('#modalBox').classList.add('learn');renderLearn();$('#modal').classList.add('show')}
+function openLearn(tab,gid){$('#modalBox').style.maxWidth='';if(tab)learnTab=tab;if(gid)learnGuide=gid;$('#modalBox').classList.add('learn');renderLearn();$('#modal').classList.add('show')}
 function renderLearn(){
  let h=`<div class="lh"><b>📖 Aprender</b><button data-lt="guias" class="${learnTab==='guias'?'on':''}">Guías rápidas</button><button data-lt="glosario" class="${learnTab==='glosario'?'on':''}">Glosario</button><button id="lClose">✕</button></div><div class="lb">`;
  if(learnTab==='guias'){
@@ -2361,15 +2492,17 @@ setInterval(()=>{
 // =====================================================================
 document.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{
  const m=b.dataset.m;
- if(m==='new'){if(confirm('¿Crear un proyecto nuevo? (El actual se puede deshacer con Ctrl+Z)')){pushUndo();const u=undoS;state=newState();undoS=u;sel.clear();fileHandle=null;changed();fitView()}}
+ if(m==='new'){newProject('Proyecto nuevo');toast('Proyecto nuevo creado. El anterior quedó guardado en 📂 Mis proyectos.')}
+ if(m==='lib') openLib();
  if(m==='open') $('#fileIn').click();
  if(m==='save') saveFile(false);
  if(m==='saveas') saveFile(true);
  if(m==='png') exportPNG();
  if(m==='print') printDoc();
- if(m==='sample'){if(state.devices.length&&!confirm('¿Cargar la casa de ejemplo? El proyecto actual se reemplaza (puede deshacer con Ctrl+Z).'))return;const prev=ser();buildSample();undoS=[prev];changed();fitView();toast('Casa de ejemplo cargada. Pulse ▶ Simular y haga clic en los interruptores.')}
+ if(m==='sample'){saveLocal();buildSample();state.pid=uid();resetSession();settings.ptab=undefined;buildPalette();changed();fitView();toast('Casa de ejemplo cargada. Pulse ▶ Simular y haga clic en los interruptores.')}
  if(m==='help') help();
  if(m==='learn') openLearn('guias');
+ if(m==='keys') shortcuts();
 });
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
 document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const a=b.dataset.a;

@@ -34,6 +34,11 @@ No requiere internet ni instalación.
 
 ![Modelos de tablero](docs/tablero-modelos.png)
 
+### Proyectos y planos para entregar
+- **📂 Mis proyectos**: varios proyectos guardados en el equipo (abrir, duplicar, eliminar).
+- **PDF en 3 hojas** con rótulo, convenciones, **diagrama unifilar**, cuadro de cargas con **caída de tensión** y lista de materiales.
+- Herramientas **📏 Medir** y **notas de texto**; atajos de teclado con la tecla **?**.
+
 ### Guías y glosario
 - **📖 Guías rápidas** de las instalaciones más comunes (sencillo, doble, 2 sitios, 3 o más sitios, tomas, GFCI, timbre, 240 V, puesta a tierra, derivaciones) con diagrama, pasos y botón para insertarlas en el plano.
 - **Glosario** con buscador: COM, S1, viajero, retorno, tándem, AWG…
