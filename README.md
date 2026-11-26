@@ -34,6 +34,9 @@ No requiere internet ni instalación.
 
 ![Modelos de tablero](docs/tablero-modelos.png)
 
+### Novedades v1.9
+- Cables trazados **por los muros**, **presupuesto** con precios editables y cotización, **actualizaciones automáticas**, calibración del plano de fondo con 2 puntos, versiones del proyecto y plantillas de 1 y 4 alcobas. Créditos en [CREDITOS.md](CREDITOS.md).
+
 ### Diseño automático y práctica
 - **Tomas automáticas** (regla de 1,80 m, GFCI en zonas húmedas) y **luz con interruptor junto a la puerta** en un clic; diseño automático de toda la casa.
 - **Tubería** calculada desde los cables, con diámetro según la NTC 2050.
@@ -97,6 +100,9 @@ No requiere internet ni instalación.
 Herramienta de apoyo para diseño y aprendizaje. El diseño definitivo debe ser revisado y firmado por un profesional competente con matrícula, conforme al RETIE y la NTC 2050 vigentes.
 
 ## Versiones
+
+El programa avisa cuando hay una versión nueva; con el `.exe` se actualiza solo en segundo plano (para desactivarlo, cree el archivo `no-actualizar.txt` en `%LOCALAPPDATA%\DisenoElectrico`).
+
 
 El historial está en [CHANGELOG.md](CHANGELOG.md). Para publicar una versión nueva:
 

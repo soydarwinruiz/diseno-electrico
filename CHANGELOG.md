@@ -2,6 +2,14 @@
 
 Todas las versiones se pueden descargar en la sección **Releases** del repositorio.
 
+## v1.9.0 — Cables por los muros, presupuesto y actualizaciones automáticas
+- **Cables por los muros**: la conexión automática y los cables nuevos siguen los muros, como en una obra real (idea adaptada de *house-planner*, MIT). Los metros de cable, la tubería y la caída de tensión salen más exactos. Botón para rehacer todas las rutas.
+- **💲 Presupuesto** (pestaña Costos): precios de ejemplo editables que se recuerdan para todos los proyectos, mano de obra, misceláneos, IVA, casillas de «comprado» con el valor pagado, exportación a Excel y cotización para imprimir.
+- **Actualizaciones automáticas**: el programa avisa cuando hay una versión nueva y muestra sus novedades. Con el `.exe`, la versión nueva se descarga sola en segundo plano y se usa la próxima vez que se abra.
+- **Plano de fondo**: calibración exacta con dos puntos sobre una medida conocida y opción para mover la imagen.
+- **Versiones dentro de un proyecto**: guardar y restaurar momentos del diseño.
+- **Resumen de áreas** y plantillas nuevas de **1 alcoba** y **4 alcobas**.
+
 ## v1.8.0 — Diseño automático, tubería, multímetro y retos
 - **🔌 Tomas automáticas**: por espacio o para toda la casa, según la regla de 1,80 m, sin tapar puertas y con GFCI en baños, cocina y zonas húmedas; quedan conectadas al tablero.
 - **💡 Luz con interruptor en un clic**: al poner una luz en un espacio sin interruptor, el programa ubica el interruptor junto a la puerta y lo conecta (con dos puertas usa conmutables). Ctrl+Z quita solo el interruptor.

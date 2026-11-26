@@ -10,6 +10,7 @@
 html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;font-size:13px;color:var(--tx);background:var(--bg);overflow:hidden}
 button,select,input{font:inherit}
 #app{display:grid;grid-template-rows:auto auto 1fr auto;grid-template-columns:220px 1fr 370px;height:100vh}
+#sideBody table.t td.n{white-space:nowrap}
 .cc{border:1px solid #dde3ea;border-radius:6px;padding:6px;margin:6px 0;background:#fafbfd}
 .cc1{display:flex;gap:6px;align-items:center}.cc1 input{flex:1;padding:3px 5px;border:1px solid #c9d1db;border-radius:4px}
 .cc2{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1fr);gap:4px 6px;margin-top:5px}.cc2 label{display:flex;flex-direction:column;font-size:11px;color:var(--mu)}.cc2 select{width:100%;padding:2px;border:1px solid #c9d1db;border-radius:4px;font-size:12px;color:var(--tx)}
@@ -41,11 +42,12 @@ button,select,input{font:inherit}
 #wrap{grid-row:3;position:relative;overflow:hidden;background:#fbfcfd}
 #cv{width:100%;height:100%;display:block;touch-action:none;user-select:none}
 #cv.m-wire .th:hover{fill:rgba(21,101,192,.35)}
-#cv.m-place,#cv.m-wall,#cv.m-room,#cv.m-wire,#cv.m-measure{cursor:crosshair}
+#cv.m-place,#cv.m-wall,#cv.m-room,#cv.m-wire,#cv.m-measure,#cv.m-calib{cursor:crosshair}
+#cv.m-bgmove{cursor:move}
 #cv.m-pan{cursor:grab}
 #side{grid-row:3;overflow:hidden;background:#fff;border-left:1px solid var(--ln);display:flex;flex-direction:column}
 .tabs{display:flex;border-bottom:1px solid var(--ln)}
-.tabs button{flex:1;border:0;background:#f5f7fa;padding:8px 2px;cursor:pointer;border-bottom:2px solid transparent}
+.tabs button{font-size:12px;flex:1;border:0;background:#f5f7fa;padding:8px 2px;cursor:pointer;border-bottom:2px solid transparent}
 .tabs button.on{background:#fff;border-bottom-color:var(--ac);font-weight:600}
 #sideBody{overflow:auto;padding:10px;flex:1}
 #sideBody h3{margin:2px 0 10px;font-size:15px;display:flex;align-items:center;gap:8px}
@@ -108,6 +110,8 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
 .pop{animation:pop .35s ease-out}
 @keyframes blink{50%{opacity:.25}}
 .blink{animation:blink .5s steps(1) infinite}
+#updBar{position:fixed;right:16px;bottom:44px;width:360px;background:#fff;border:2px solid #2e7d32;border-radius:12px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.25);z-index:45;font-size:13px;line-height:1.4}
+#updBar b{color:#2e7d32}
 #retoBar{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:min(760px,92%);background:#fffde7;border:2px solid #f9a825;border-radius:10px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:16;font-size:13px;line-height:1.4}
 #meterBox{position:absolute;left:12px;bottom:12px;width:230px;background:#f9a825;border:3px solid #263238;border-radius:16px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:15;font-size:12px}
 #meterBox .scr{background:#c5d6b8;border:2px solid #37474f;border-radius:6px;padding:6px 8px;font-family:Consolas,monospace;color:#1b2a1b;text-align:right}
@@ -280,6 +284,7 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
    <button data-tab="panel">Tablero</button>
    <button data-tab="check">Revisión <span id="badge"></span></button>
    <button data-tab="mat">Materiales</button>
+   <button data-tab="cost">💲 Costos</button>
   </div>
   <div id="sideBody"></div>
  </div>
@@ -288,13 +293,14 @@ table.t input,table.t select{width:100%;border:1px solid #d3dae3;border-radius:3
   <label><input type="checkbox" id="showLabels" checked> etiquetas</label><label><input type="checkbox" id="showGrid" checked> cuadrícula</label><label><input type="checkbox" id="showDims" checked> cotas</label><label title="Muestra la tubería calculada con su diámetro y número de cables"><input type="checkbox" id="showPipe"> tubería</label></span></div>
 </div>
 <div id="toast"></div>
+<div id="updBar" style="display:none"></div>
 <div id="ctx"></div>
 <div id="modal"><div class="box" id="modalBox"></div></div>
 <div id="print"></div>
 
 <script>
 "use strict";
-const APP_VERSION='1.8.0';
+const APP_VERSION='1.9.0';
 // =====================================================================
 //  Utilidades
 // =====================================================================
@@ -534,6 +540,7 @@ let sel=new Set();
 let undoS=[], redoS=[];
 let settings={autoColor:true,color:'negro',gauge:'12',showLabels:true,grid:true,snap:5,viewC:''};
 const WALLMOUNT=['int_sencillo','int_doble','int_triple','int_conmutable','int_cruce','int_toma','pulsador','toma_doble','toma_gfci','toma_220','aplique','timbre'];
+let calib=null;
 let altDown=false, clip=null, hoverKey='', measure=null, meterP={r:null,b:null}, diagTarget=null;
 let drag=null, wireDraft=null, wallDraft=null, mouseW={x:0,y:0}, spaceDown=false, simRes=null, fileHandle=null, sideTab='prop';
 
@@ -911,6 +918,7 @@ function renderOv(){
  if(drag&&drag.t==='rsel'){const a=drag.a,b=drag.b;pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${Math.abs(b.x-a.x)}" height="${Math.abs(b.y-a.y)}" fill="rgba(30,136,229,.08)" stroke="#1e88e5" stroke-width="${1/z}" stroke-dasharray="${4/z}"/>`}
  if(drag&&drag.t==='room'){const a=drag.a,b=drag.b,w=Math.abs(b.x-a.x),h=Math.abs(b.y-a.y),ov=state.rooms.some(r=>rectOverlap({x:Math.min(a.x,b.x),y:Math.min(a.y,b.y),w,h},r));pv+=`<rect x="${Math.min(a.x,b.x)}" y="${Math.min(a.y,b.y)}" width="${w}" height="${h}" fill="${ov?'rgba(229,57,53,.15)':'rgba(255,193,7,.15)'}" stroke="${ov?'#e53935':'#f9a825'}" stroke-width="${2/z}"/><text x="${(a.x+b.x)/2}" y="${(a.y+b.y)/2}" font-size="${13/z}" text-anchor="middle" fill="#e65100" font-weight="700">${f1(w/100)} × ${f1(h/100)} m</text>`}
  if(mode==='wall'&&wallDraft){const q=snapWall(mouseW,false);pv+=`<line x1="${wallDraft.x}" y1="${wallDraft.y}" x2="${q.x}" y2="${q.y}" stroke="#3e4a55" stroke-width="15" opacity=".5" stroke-linecap="square"/><text x="${(wallDraft.x+q.x)/2}" y="${(wallDraft.y+q.y)/2-14}" font-size="${12/z}" text-anchor="middle" fill="#1565c0" font-weight="700">${f1(dist(wallDraft,q)/100)} m</text>`}
+ if(mode==='calib'&&calib){const a=calib.a,b=mouseW;pv+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#00897b" stroke-width="${2.5/z}" stroke-dasharray="${6/z} ${3/z}"/><circle cx="${a.x}" cy="${a.y}" r="${5/z}" fill="#00897b"/>`}
  if(mode==='measure'&&measure){const a=measure.a,b=measure.b||snapRoom(mouseW),L=dist(a,b),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
   pv+=`<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#d81b60" stroke-width="${2/z}"/><circle cx="${a.x}" cy="${a.y}" r="${4/z}" fill="#d81b60"/><circle cx="${b.x}" cy="${b.y}" r="${4/z}" fill="#d81b60"/>`+
    `<rect x="${mx-38/z}" y="${my-24/z}" width="${76/z}" height="${18/z}" rx="${4/z}" fill="#d81b60"/><text x="${mx}" y="${my-11/z}" font-size="${12/z}" fill="#fff" text-anchor="middle" font-weight="700">${f1(L/100)} m</text>`+
@@ -966,12 +974,14 @@ const HINTS={
  room:'Arrastre para dibujar el espacio (se alinea con los espacios vecinos). Los muros y medidas aparecen solos. Elija el tipo en la paleta izquierda (pestaña Plano).',
  wire:'Clic en un borne o SOBRE UN CABLE (crea una derivación) para iniciar · clics intermedios para doblar el cable · clic en otro borne para terminar · Retroceso: quita el último punto · Esc: cancelar',
  meter:'MULTÍMETRO: clic en un borne para la punta roja y en otro para la punta negra; la lectura aparece abajo a la izquierda. También puede accionar interruptores.',
+ calib:'CALIBRAR IMAGEN: haga clic en un extremo de una medida conocida del plano (por ejemplo una cota) y luego en el otro extremo; después escriba la medida real.',
+ bgmove:'MOVER IMAGEN: arrastre para alinear el plano de fondo con sus espacios. Esc para terminar.',
  measure:'MEDIR: clic en el punto inicial y clic en el punto final (se pega a esquinas y bordes) · Esc para terminar',
  sim:'SIMULACIÓN: clic en interruptores para accionarlos · clic en tomacorrientes para conectar aparatos · T: ver el tablero con sus tacos',
  place:'Clic para colocar · Se pega al muro más cercano (Alt: libre) · Puertas: abren hacia el lado del ratón · R: rotar · Esc: terminar'
 };
 function setMode(m){
- mode=m; wireDraft=null; wallDraft=null; if(m!=='measure') measure=null; if(m!=='meter'){meterP={r:null,b:null};const mm=document.getElementById('meterBox');if(mm)mm.style.display='none'} if(m!=='sim'&&m!=='meter') diagTarget=null;
+ mode=m; wireDraft=null; wallDraft=null; if(m!=='measure') measure=null; if(m!=='calib') calib=null; if(m!=='meter'){meterP={r:null,b:null};const mm=document.getElementById('meterBox');if(mm)mm.style.display='none'} if(m!=='sim'&&m!=='meter') diagTarget=null;
  if(m==='sim'&&getPanel()&&!pv.autoOpened&&!pv.open){pv.autoOpened=true;setTimeout(()=>toast('Consejo: pulse 🗄 Tablero (tecla T) para ver los tacos, el medidor y las corrientes mientras simula.'),50)}
  if(m!=='place') placeType=null;
  if(m==='room'&&!settings.roomType) settings.roomType='alcoba';
@@ -1019,6 +1029,10 @@ svg.addEventListener('pointerdown',e=>{
  if(mode==='room'){const q=snapRoom(p);drag={t:'room',a:q,b:q};return}
  if(mode==='place') return placeAt(ps,p,e.altKey);
  if(mode==='wire') return wireClick(H,ps,p);
+ if(mode==='calib'){if(!calib){calib={a:p};renderOv();return}
+  const L=dist(calib.a,p); if(L<5) return; const real=parseFloat((prompt('¿Cuánto mide en la realidad esa distancia? (en metros, por ejemplo 3,50)','')||'').replace(',','.'));
+  if(real>0&&state.bg){pushUndo();const f=real*100/L,a=calib.a,B=state.bg;B.x=a.x-(a.x-B.x)*f;B.y=a.y-(a.y-B.y)*f;B.w*=f;B.h*=f;B.cal=true;calib=null;setMode('select');changed();toast(`Imagen calibrada: esa medida ahora es ${f1(real)} m. Use «Mover imagen» para alinearla con sus espacios.`)}else{calib=null;renderOv()}return}
+ if(mode==='bgmove'&&state.bg){drag={t:'bg',sx:p.x,sy:p.y,ox:state.bg.x,oy:state.bg.y,before:ser(),moved:false};return}
  if(mode==='measure'){const q=e.shiftKey?ps:snapRoom(p);if(!measure||measure.b)measure={a:q,b:null};else measure.b=q;renderOv();return}
  selectDown(e,H,p,ps);
 });
@@ -1067,7 +1081,7 @@ window.addEventListener('pointermove',e=>{
  const p=toWorld(e); mouseW=p; altDown=e.altKey;
  $('#coords').textContent=`x ${f1(p.x/100)} m · y ${f1(p.y/100)} m`;
  if(!drag) hoverInfo(e);
- if(!drag){ if(['wall','wire','place','measure'].includes(mode)) renderOv(); return }
+ if(!drag){ if(['wall','wire','place','measure','calib'].includes(mode)) renderOv(); return }
  const ps=snapP(p);
  switch(drag.t){
   case 'pan': state.view.x=drag.vx+e.clientX-drag.cx; state.view.y=drag.vy+e.clientY-drag.cy; $('#world').setAttribute('transform',`translate(${state.view.x} ${state.view.y}) scale(${state.view.z})`); return;
@@ -1098,6 +1112,7 @@ window.addEventListener('pointermove',e=>{
    for(const id in o.l){const w=state.walls.find(w=>w.id===id),q=o.l[id];w.x1=q.x1+dx;w.y1=q.y1+dy;w.x2=q.x2+dx;w.y2=q.y2+dy}
    for(const id in o.w){const w=wireById(id);w.pts=o.w[id].map(q=>[q[0]+dx,q[1]+dy])}
    render(); return}
+  case 'bg': {state.bg.x=Math.round(drag.ox+p.x-drag.sx);state.bg.y=Math.round(drag.oy+p.y-drag.sy);drag.moved=true;render();return}
   case 'vtx': {const w=wireById(drag.w); w.pts[drag.i]=[ps.x,ps.y]; drag.moved=true; render(); return}
   case 'rh': {const r=state.rooms.find(r=>r.id===drag.id); const x2=r.x+r.w,y2=r.y+r.h; let [ax,ay,bx,by]=[r.x,r.y,x2,y2];
    const q=e.altKey?ps:snapRoom(p,r), c=drag.c;
@@ -1116,7 +1131,7 @@ window.addEventListener('pointermove',e=>{
 window.addEventListener('pointerup',e=>{
  if(!drag) return; const d=drag; drag=null;
  if(d.t==='mom'){const x=dev(d.id);if(x){x.st[0]=false;changed()}return}
- if(['move','vtx','rh','wh','edge'].includes(d.t)&&d.moved){undoS.push(d.before);redoS=[];changed();
+ if(['move','vtx','rh','wh','edge','bg'].includes(d.t)&&d.moved){undoS.push(d.before);redoS=[];changed();
   if(d.t==='move'&&d.overlap) toast('El espacio quedó encima de otro. Muévalo hasta que se pegue al borde (aparece una línea guía) o use Ctrl+Z.',true);
   else if(d.t==='move'&&d.guides&&d.guides.length&&Object.keys(d.orig.r).length) toast('Espacio anclado ✔ Los muros compartidos se unieron.');
   return}
@@ -1382,7 +1397,7 @@ function ctxMenu(e,H,p){
   }
   const w=key[0]==='w'&&wireById(key.slice(2));
   if(w) items.push({t:'⑂ Derivar un cable desde aquí',f:()=>startBranch(w,p)});
-  if(w) items.push({t:'↳ Ruta ortogonal automática',f:()=>upd(()=>w.pts=wireRoute(w.a,w.b,OFF[w.role]||0))},{t:'／ Línea recta',f:()=>upd(()=>w.pts=[])});
+  if(w) items.push({t:'↳ Ruta por los muros',f:()=>upd(()=>w.pts=wireRoute(w.a,w.b,OFF[w.role]||0))},{t:'↺ Rehacer todas las rutas por los muros',f:rerouteAll},{t:'／ Línea recta',f:()=>upd(()=>w.pts=[])});
   const r=key[0]==='r'&&state.rooms.find(x=>x.id===key.slice(2));
   if(r) items.push({t:'🧱 Muros automáticos',f:()=>{sideTab='prop';renderSide();upd(()=>r.autoWalls=true)}},{t:'🔌 Tomas automáticas',f:()=>{pushUndo();const n=undoS.length;autoOutlets(r);undoS.length=n;changed()}},{t:'💡 Luz con interruptor',f:()=>{pushUndo();const n=undoS.length;lightWithSwitch(r);undoS.length=n;changed()}},{t:'⚙ Cablear este espacio',f:()=>autoWireAll(r)});
   items.push({sep:1},{t:'🗑 Eliminar',k:'Supr',f:delSel});
@@ -1465,7 +1480,45 @@ function rotSel(){
  const ds=[...sel].filter(k=>k[0]==='d').map(k=>dev(k.slice(2))).filter(Boolean); if(!ds.length) return;
  pushUndo(); ds.forEach(d=>d.r=((d.r||0)+90)%360); changed();
 }
+// ---------- ruteo de cables por los ejes de los muros (idea adaptada de egmalt/house-planner, MIT) ----------
+let WG=null, WGsig='';
+function wallGraph(){
+ const segs=allWalls().map(w=>({x1:w.x1,y1:w.y1,x2:w.x2,y2:w.y2})).filter(w=>Math.hypot(w.x2-w.x1,w.y2-w.y1)>1);
+ const sig=JSON.stringify(segs); if(WG&&sig===WGsig) return WG;
+ const nodes=[], adj=new Map(), node=p=>{let i=nodes.findIndex(q=>Math.abs(q.x-p.x)<2&&Math.abs(q.y-p.y)<2);if(i<0){nodes.push({x:p.x,y:p.y});i=nodes.length-1;adj.set(i,[])}return i};
+ const segNodes=segs.map(()=>[]);
+ const tOn=(s,p)=>{const dx=s.x2-s.x1,dy=s.y2-s.y1,L2=dx*dx+dy*dy,t=((p.x-s.x1)*dx+(p.y-s.y1)*dy)/L2,q={x:s.x1+t*dx,y:s.y1+t*dy};return {t,d:Math.hypot(p.x-q.x,p.y-q.y)}};
+ segs.forEach((s,i)=>{[{x:s.x1,y:s.y1},{x:s.x2,y:s.y2}].forEach(p=>segNodes[i].push({t:tOn(s,p).t,id:node(p)}))});
+ segs.forEach((s,i)=>segs.forEach((q,j)=>{if(i===j)return;
+  [{x:q.x1,y:q.y1},{x:q.x2,y:q.y2}].forEach(p=>{const r=tOn(s,p);if(r.d<2&&r.t>.001&&r.t<.999)segNodes[i].push({t:r.t,id:node(p)})});
+  const rx=s.x2-s.x1,ry=s.y2-s.y1,sx=q.x2-q.x1,sy=q.y2-q.y1,den=rx*sy-ry*sx; if(Math.abs(den)<1e-9)return;
+  const t=((q.x1-s.x1)*sy-(q.y1-s.y1)*sx)/den,u=((q.x1-s.x1)*ry-(q.y1-s.y1)*rx)/den;
+  if(t>.001&&t<.999&&u>.001&&u<.999)segNodes[i].push({t,id:node({x:s.x1+rx*t,y:s.y1+ry*t})})}));
+ const link=(a,b)=>{if(a===b)return;const w=Math.hypot(nodes[a].x-nodes[b].x,nodes[a].y-nodes[b].y);adj.get(a).push([b,w]);adj.get(b).push([a,w])};
+ segNodes.forEach(l=>{l.sort((p,q)=>p.t-q.t);for(let k=1;k<l.length;k++)link(l[k-1].id,l[k].id)});
+ WG={segs,nodes,adj,segNodes,tOn}; WGsig=sig; return WG;
+}
+function wallPath(A,B,off){
+ const G=wallGraph(); if(!G.segs.length) return null;
+ const proj=P=>{let best=null;G.segs.forEach((s,i)=>{const dx=s.x2-s.x1,dy=s.y2-s.y1,L2=dx*dx+dy*dy,t=clamp(((P.x-s.x1)*dx+(P.y-s.y1)*dy)/L2,0,1),q={x:s.x1+t*dx,y:s.y1+t*dy},d=dist(P,q);if(!best||d<best.d)best={i,t,q,d}});return best};
+ const pa=proj(A), pb=proj(B); if(!pa||!pb||pa.d>320||pb.d>320) return null;
+ const nodes=G.nodes.slice(), adj=new Map([...G.adj].map(([k,v])=>[k,v.slice()]));
+ const add=(pr)=>{const id=nodes.length;nodes.push(pr.q);adj.set(id,[]);const l=G.segNodes[pr.i];let lo=null,hi=null;l.forEach(n=>{if(n.t<=pr.t&&(!lo||n.t>lo.t))lo=n;if(n.t>=pr.t&&(!hi||n.t<hi.t))hi=n});
+  [lo,hi].forEach(n=>{if(n){const w=dist(nodes[n.id],pr.q);adj.get(id).push([n.id,w]);adj.get(n.id).push([id,w])}});return id};
+ const ia=add(pa), ib=add(pb);
+ if(pa.i===pb.i){const w=dist(pa.q,pb.q);adj.get(ia).push([ib,w]);adj.get(ib).push([ia,w])}
+ const D=new Map([[ia,0]]), prev=new Map(), q=[ia], done=new Set();
+ while(q.length){let bi=0;for(let k=1;k<q.length;k++)if(D.get(q[k])<D.get(q[bi]))bi=k;const u=q.splice(bi,1)[0];if(done.has(u))continue;done.add(u);if(u===ib)break;
+  (adj.get(u)||[]).forEach(([v,w])=>{const nd=D.get(u)+w;if(nd<(D.has(v)?D.get(v):1e12)){D.set(v,nd);prev.set(v,u);q.push(v)}})}
+ if(!D.has(ib)) return null;
+ const path=[]; for(let v=ib;v!==undefined;v=prev.get(v)){path.push(nodes[v]);if(v===ia)break}
+ path.reverse();
+ const o=off||0, pts=path.map(p=>[Math.round((p.x+o)*10)/10,Math.round((p.y+o)*10)/10]);
+ const out=[]; pts.forEach(p=>{const L=out[out.length-1];if(L&&Math.abs(L[0]-p[0])<.5&&Math.abs(L[1]-p[1])<.5)return;if(out.length>=2){const a=out[out.length-2],b=out[out.length-1];if(Math.abs((b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]))<1)out.pop()}out.push(p)});
+ return out;
+}
 function wireRoute(a,b,off){
+ if(settings.wallRoute!==false){const da=dev(a.d),db=dev(b.d),P=wallPath(tpos(da,a.t),tpos(db,b.t),off);if(P)return P}
  // los cables que salen de la bornera del tablero primero bajan y luego siguen
  const da=dev(a.d),db=dev(b.d),A=tpos(da,a.t),B=tpos(db,b.t), pa=da.type==='tablero', pb=db.type==='tablero';
  if(pa||pb){const P=pa?A:B,Q=pa?B:A,pd=pa?da:db,key=pa?a.t:b.t,ti=Math.max(0,termsOf(pd).findIndex(t=>t.k===key)),y=P.y+12+ti*4*scaleOf(pd);let pts=Math.abs(P.x-Q.x)<1&&Q.y>P.y?[]:[[P.x,y],[Q.x,y]];if(!pa)pts.reverse();return pts}
@@ -1476,6 +1529,7 @@ function route(A,B,off){
  const M=Math.round((A.y+(B.y-A.y)/2+off)/2.5)*2.5;
  return [[A.x,M],[B.x,M]];
 }
+function rerouteAll(){pushUndo();state.wires.forEach(w=>w.pts=wireRoute(w.a,w.b,OFF[w.role]||0));changed();toast('Todos los cables se volvieron a trazar por los muros.')}
 function defaultCircuits(){
  ['iluminacion','tomas','cocina','cocina','lavanderia','bano'].forEach(k=>addCircuit(k));
 }
@@ -1765,6 +1819,7 @@ function renderSide(){
  if(sideTab==='panel') return sidePanel(B);
  if(sideTab==='check') return sideCheck(B,iss);
  if(sideTab==='mat') return sideMat(B);
+ if(sideTab==='cost') return sideCost(B);
  sideProp(B);
 }
 function sideProp(B){
@@ -1813,26 +1868,35 @@ function sideProp(B){
   [false,'Probar encendiendo luces','▶ Simular',()=>setMode('sim')]];
  h+=`<h3>🚀 Primeros pasos</h3><ul class="steps">${steps.map((st,i)=>`<li class="${st[0]?'done':''}"><span class="ck">${st[0]?'✔':i+1}</span><b>${st[1]}</b><button class="btn" data-step="${i}">${st[2]}</button></li>`).join('')}</ul>`;
  if(state.rooms.length) h+=`<h3>⚡ Diseño automático</h3><div class="btnrow"><button class="btn" id="adT">🔌 Tomas en todos los espacios</button><button class="btn" id="adL">💡 Luces e interruptores</button><button class="btn pri" id="adA">✨ Todo</button></div><label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mu)"><input type="checkbox" id="adSw" ${settings.autoSw!==false?'checked':''}> Al poner una luz en un espacio sin interruptor, agregar el interruptor junto a la puerta</label>`;
+ h+=`<label style="display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mu);margin-top:4px"><input type="checkbox" id="adWR" ${settings.wallRoute!==false?'checked':''}> Trazar los cables por los muros (como en la obra)</label>${state.wires.length?'<div class="btnrow"><button class="btn" id="adRR">↺ Rehacer las rutas de todos los cables</button></div>':''}`;
  h+=`<h3>📐 Proyecto</h3>`+row('Nombre',`<input id="pName" value="${esc(state.name)}">`)+
   row('Tamaño de íconos',`<input id="pScale" type="range" min=".5" max="2" step=".1" value="${state.iconScale}">`)+
   row('Ajuste a cuadrícula',`<select id="pSnap">${[1,5,10,25,50].map(v=>`<option ${v==settings.snap?'selected':''} value="${v}">${v} cm</option>`).join('')}</select>`);
+ {const rs=state.rooms, A=rs.reduce((t,r)=>t+r.w*r.h/1e4,0); if(rs.length){const by={};rs.forEach(r=>{const k=ROOMT[r.type].split(' /')[0];by[k]=(by[k]||0)+r.w*r.h/1e4});
+  h+=`<h4>📏 Resumen de áreas</h4><table class="t"><tr><th>Área total de espacios</th><th class="n">${f1(A)} m²</th></tr>${Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)} (${rs.filter(r=>ROOMT[r.type].split(' /')[0]===k).length})</td><td class="n">${f1(v)} m²</td></tr>`).join('')}<tr><td>Alcobas · baños</td><td class="n">${rs.filter(r=>r.type==='alcoba').length} · ${rs.filter(r=>r.type==='bano').length}</td></tr></table>`}}
+ {const sn=state.snaps||[]; h+=`<h4>🕘 Versiones de este proyecto</h4><div class="btnrow"><button class="btn" id="snapNew">+ Guardar versión</button></div>${sn.length?`<table class="t">${sn.slice().reverse().map(x=>`<tr><td><b>${esc(x.name)}</b><br><small>${ago(x.t)}</small></td><td style="white-space:nowrap"><button class="btn" data-sr="${x.id}">Restaurar</button> <button class="btn danger" data-sx="${x.id}">×</button></td></tr>`).join('')}</table>`:'<div class="note" style="font-size:12px">Guarde una versión antes de un cambio grande (por ejemplo «antes de cambiar la cocina») para poder volver a ella.</div>'}`}
  const INF=state.info||{};
  h+=`<h4>Datos para el rótulo de los planos</h4>`+[['dir','Dirección'],['prop','Propietario'],['dis','Diseñó'],['mat','Matrícula profesional'],['ciu','Ciudad']].map(([k,l])=>row(l,`<input data-inf="${k}" value="${esc(INF[k]||'')}">`)).join('');
  h+=`<h4>Plano base (imagen de fondo)</h4><div class="note">Puede cargar una foto o escaneo del plano arquitectónico y dibujar encima. También puede dibujar los muros con 🧱 y los espacios con ⬚.</div>`;
  if(state.bg) h+=row('Ancho real (m)',`<input id="bgW" type="number" step=".1" value="${f1(state.bg.w/100).replace(',','.')}">`)+row('Opacidad',`<input id="bgO" type="range" min=".1" max="1" step=".05" value="${state.bg.op}">`)+row('Posición x / y (m)',`<div style="display:flex;gap:4px"><input id="bgX" type="number" step=".1" value="${state.bg.x/100}"><input id="bgY" type="number" step=".1" value="${state.bg.y/100}"></div>`);
- h+=`<div class="btnrow"><button class="btn" id="bgLoad">🖼 ${state.bg?'Cambiar':'Cargar'} imagen</button>${state.bg?'<button class="btn danger" id="bgDel">Quitar imagen</button>':''}</div>`;
+ h+=`<div class="btnrow"><button class="btn" id="bgLoad">🖼 ${state.bg?'Cambiar':'Cargar'} imagen</button>${state.bg?'<button class="btn pri" id="bgCal">📏 Calibrar con 2 puntos</button><button class="btn" id="bgMove">✋ Mover imagen</button><button class="btn danger" id="bgDel">Quitar imagen</button>':''}</div>`+(state.bg?`<div class="note">${state.bg.cal?'✔ Escala calibrada.':'⚠ Escala aproximada: use <b>Calibrar con 2 puntos</b> sobre una cota conocida del plano para que las medidas sean exactas.'}</div>`:'');
  h+=`<h4>Colores para la conexión automática</h4>`+['faseA','faseB','retorno','viajero'].map(k=>row({faseA:'Fase A',faseB:'Fase B',retorno:'Retornos',viajero:'Viajeros'}[k],`<select data-colk="${k}">${Object.entries(COLORS).filter(([c])=>!NEU_COL.includes(c)&&!GND_COL.includes(c)).map(([c,o])=>`<option value="${c}" ${state.colors[k]===c?'selected':''}>${o.n}</option>`).join('')}</select>`)).join('');
  h+=`<div class="note">Código de colores RETIE (sistema monofásico trifilar 120/240 V): <b>fases negro y rojo</b>, <b>neutro blanco</b>, <b>tierra verde o desnudo</b>. Retornos y viajeros son conductores de fase: cualquier color excepto blanco, gris o verde.</div>`;
  h+=`<h4>Resumen</h4><div>${state.rooms.length} espacios · ${state.devices.filter(isElec).length} aparatos · ${state.wires.length} cables · ${state.circuits.length} circuitos</div>`;
  B.innerHTML=h;
  B.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>steps[+b.dataset.step][3]());
  $('#pName').onchange=e=>{state.name=e.target.value;changed()};
+ if($('#adWR')) $('#adWR').onchange=e=>{settings.wallRoute=e.target.checked}; if($('#adRR')) $('#adRR').onclick=rerouteAll;
  if($('#adT')){$('#adT').onclick=()=>autoDesignAll('tomas');$('#adL').onclick=()=>autoDesignAll('luz');$('#adA').onclick=()=>autoDesignAll('todo');$('#adSw').onchange=e=>settings.autoSw=e.target.checked}
+ const SK=id=>'disenoElectrico.snap.'+state.pid+'.'+id;
+ if($('#snapNew')) $('#snapNew').onclick=()=>{const n=prompt('Nombre de la versión:','Versión '+((state.snaps||[]).length+1)+' – '+new Date().toLocaleDateString('es-CO'));if(!n)return;const id=uid(),copy=JSON.parse(ser());delete copy.snaps;try{localStorage.setItem(SK(id),JSON.stringify(copy));state.snaps=[...(state.snaps||[]),{id,name:n,t:Date.now()}];changed();toast('Versión guardada: '+n)}catch(e){toast('No hay espacio para guardar la versión en este equipo.',true)}};
+ B.querySelectorAll('[data-sr]').forEach(b=>b.onclick=()=>{const x=(state.snaps||[]).find(v=>v.id===b.dataset.sr),raw=localStorage.getItem(SK(x.id));if(!raw)return toast('No se encontró esa versión.',true);if(!confirm(`¿Restaurar «${x.name}»? El estado actual se puede recuperar con Ctrl+Z.`))return;pushUndo();const keep={pid:state.pid,snaps:state.snaps,view:state.view};state=JSON.parse(raw);Object.assign(state,keep);fixState();sel.clear();changed();toast('Versión restaurada: '+x.name)});
+ B.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{const x=(state.snaps||[]).find(v=>v.id===b.dataset.sx);if(!confirm(`¿Eliminar la versión «${x.name}»?`))return;localStorage.removeItem(SK(x.id));state.snaps=state.snaps.filter(v=>v!==x);changed()});
  B.querySelectorAll('[data-inf]').forEach(el=>el.onchange=()=>{state.info=state.info||{};state.info[el.dataset.inf]=el.value;saveLocal()});
  $('#pScale').onchange=e=>upd(()=>state.iconScale=+e.target.value);
  $('#pSnap').onchange=e=>{settings.snap=+e.target.value};
  $('#bgLoad').onclick=()=>$('#imgIn').click();
- if(state.bg){$('#bgDel').onclick=()=>upd(()=>state.bg=null);
+ if(state.bg){$('#bgDel').onclick=()=>upd(()=>state.bg=null); $('#bgCal').onclick=()=>{calib=null;setMode('calib')}; $('#bgMove').onclick=()=>setMode('bgmove');
   $('#bgW').onchange=e=>upd(()=>{const r=state.bg.h/state.bg.w;state.bg.w=+e.target.value*100;state.bg.h=state.bg.w*r});
   $('#bgO').oninput=e=>{state.bg.op=+e.target.value;render()}; $('#bgO').onchange=()=>saveLocal();
   $('#bgX').onchange=e=>upd(()=>state.bg.x=+e.target.value*100); $('#bgY').onchange=e=>upd(()=>state.bg.y=+e.target.value*100)}
@@ -1878,7 +1942,7 @@ function propWire(B,w){
  h+=row('Longitud en planta',f1(wireLen(w)/100)+' m');
  h+=row('Desde',describeEnd(w.a))+row('Hasta',describeEnd(w.b));
  if(w.role) h+=row('Función',{fase:'Fase',neutro:'Neutro',tierra:'Tierra de protección',retorno:'Retorno (del interruptor a la luz)',viajero:'Viajero (entre conmutables)',spt:'Conductor de puesta a tierra'}[w.role]);
- h+=`<div class="btnrow"><button class="btn" id="wR">Ruta ortogonal automática</button><button class="btn" id="wS">Línea recta</button><button class="btn danger" id="wD">Eliminar</button></div>`;
+ h+=`<div class="btnrow"><button class="btn" id="wR">Ruta por los muros</button><button class="btn" id="wS">Línea recta</button><button class="btn danger" id="wD">Eliminar</button></div>`;
  h+=`<div class="note">Arrastre los puntos blancos para mover los dobleces; arrastre los puntos azules (centro de cada tramo) para crear un doblez nuevo; doble clic en un doblez lo borra.</div>`;
  B.innerHTML=h;
  B.querySelectorAll('[data-wc]').forEach(el=>el.onclick=()=>upd(()=>w.color=el.dataset.wc));
@@ -1968,6 +2032,76 @@ function sideCheck(B,iss){
   if(p){const R=svg.getBoundingClientRect();state.view.x=R.width/2-p.x*state.view.z;state.view.y=R.height/2-p.y*state.view.z}
   sideTab='prop'; if(mode!=='select')setMode('select'); else{render();renderSide()}});
 }
+// ---------- presupuesto ----------
+const PRICE_KEY='disenoElectrico.precios';
+function defPrice(k){
+ const m=(re,v)=>re.test(k)?v:null, T=[
+  [/^Tablero .*riel/i,k.match(/(\d+) módulos/)?60000+(+k.match(/(\d+) módulos/)[1])*12000:200000],[/^Tablero /i,k.match(/(\d+) espacios/)?50000+(+k.match(/(\d+) espacios/)[1])*11000:180000],
+  [/Totalizador/i,75000],[/diferencial 2P/i,220000],[/diferencial 1P/i,120000],[/bipolar 2P/i,65000],[/tándem/i,38000],[/Taco .*1P (30|40)/i,26000],[/^Taco /i,22000],
+  [/^Bombillo/i,12000],[/Panel \/ plafón/i,28000],[/Aplique/i,45000],[/Ventilador/i,250000],[/Extractor/i,90000],
+  [/Interruptor sencillo/i,8000],[/Interruptor doble/i,12000],[/Interruptor triple/i,16000],[/conmutable/i,12000],[/cruce/i,30000],[/Interruptor \+ tomacorriente/i,18000],[/Dimmer/i,45000],[/Sensor de movimiento/i,55000],[/Fotocelda/i,35000],[/Pulsador/i,9000],
+  [/GFCI/i,75000],[/240 V \(estufa/i,35000],[/Tomacorriente doble/i,9000],[/Toma de TV/i,9000],[/Toma de datos/i,15000],
+  [/Ducha/i,120000],[/Transformador/i,40000],[/Timbre \/ citófono 12/i,45000],[/^Timbre/i,30000],[/Varilla/i,65000],[/Derivación|Empalme/i,800],
+  [/octagonal reforzada/i,4500],[/octagonal/i,2500],[/2x4" profunda/i,2500],[/2x4/i,1800],[/4x4" con tapa/i,6000],[/4x4/i,3500],[/intemperie/i,15000],
+  [/^Cable 18/i,900],[/^Cable 14/i,1900],[/^Cable 12/i,2700],[/^Cable 10/i,4200],[/^Cable 8/i,7000],[/^Cable 6/i,11000],[/^Cable 4/i,17000],
+  [/Tubo PVC ½/i,6500],[/Tubo PVC ¾/i,9500],[/Tubo PVC 1"/i,14000],[/Tubo PVC 1¼/i,22000],[/Tubo PVC/i,30000],[/Curva/i,1200],[/Adaptador/i,500],
+  [/Mano de obra: salida/i,35000],[/Mano de obra: tablero/i,150000],[/Mano de obra: puesta a tierra/i,120000]];
+ for(const [re,v] of T) if(re.test(k)) return v; return 0;
+}
+function priceList(){try{return JSON.parse(localStorage.getItem(PRICE_KEY)||'{}')}catch(e){return {}}}
+function priceOf(k){const L=priceList();return L[k]!=null?L[k]:defPrice(k)}
+function setPrice(k,v){const L=priceList();L[k]=v;try{localStorage.setItem(PRICE_KEY,JSON.stringify(L))}catch(e){}}
+function budgetRows(){
+ const M=materials(), rows=[], add=(g,k,qty,u)=>{if(qty>0)rows.push({g,k,qty,u})};
+ Object.entries(M.dev).forEach(([k,v])=>add('Aparatos y tablero',k,v,'und'));
+ Object.entries(M.boxes).forEach(([k,v])=>add('Cajas',k,v,'und'));
+ Object.entries(M.brk).forEach(([k,v])=>add('Protecciones',k,v,'und'));
+ const cab={}; Object.entries(M.cab).forEach(([k,v])=>{const g=k.split(' ')[0];cab[g]=(cab[g]||0)+v}); Object.entries(cab).forEach(([g,v])=>add('Cable',`Cable ${g} AWG THHN (todos los colores)`,v,'m'));
+ if(state.wires.length){const tub={};conduits().forEach(r=>tub[r.pipe]=(tub[r.pipe]||0)+r.len);tub['½"']=(tub['½"']||0)+state.devices.filter(d=>isElec(d)||isComm(d)).reduce((s,d)=>s+(/Techo/.test(CAT[d.type].h||'')?0.3:2.0),0);
+  Object.entries(tub).forEach(([k,m])=>add('Tubería',`Tubo PVC ${k} x 3 m`,Math.ceil(m*1.1/3),'tubo'));
+  Object.entries(M.tub).forEach(([k,v])=>{if(/Curvas|Adaptadores/.test(k))add('Tubería',k.replace(' (aprox.)',''),v,'und')})}
+ const salidas=state.devices.filter(d=>isElec(d)||isComm(d)).length;
+ add('Mano de obra','Mano de obra: salida (punto) instalada',salidas,'salida'); if(getPanel())add('Mano de obra','Mano de obra: tablero (montaje y conexión)',1,'und'); if(state.devices.some(d=>d.type==='varilla'))add('Mano de obra','Mano de obra: puesta a tierra',1,'und');
+ const B=state.budget||{};
+ rows.forEach(r=>{r.price=priceOf(r.k);r.sub=r.qty*r.price;const it=(B.items||{})[r.k]||{};r.bought=!!it.bought;r.real=it.real;r.date=it.date});
+ return rows;
+}
+function budgetTotals(rows){
+ const B=state.budget||{}, misc=B.misc!=null?B.misc:5, iva=B.iva!==false;
+ const mat=rows.filter(r=>r.g!=='Mano de obra').reduce((s,r)=>s+r.sub,0), mo=rows.filter(r=>r.g==='Mano de obra').reduce((s,r)=>s+r.sub,0);
+ const mis=mat*misc/100, ivaV=iva?(mat+mis)*.19:0, total=mat+mo+mis+ivaV;
+ const paid=rows.filter(r=>r.bought).reduce((s,r)=>s+(r.real!=null&&r.real!==''?+r.real:r.sub),0);
+ return {mat,mo,mis,ivaV,total,misc,iva,paid};
+}
+const $$=v=>'$ '+Math.round(v).toLocaleString('es-CO');
+function sideCost(B){
+ const rows=budgetRows(), T=budgetTotals(rows), groups=[...new Set(rows.map(r=>r.g))];
+ let h=`<h3>💲 Presupuesto</h3><div class="note warnbox" style="font-size:12px">Precios de <b>ejemplo</b> (referencia aproximada en pesos colombianos). Cámbielos por los de su proveedor: los precios que escriba se recuerdan para todos sus proyectos.</div>`;
+ groups.forEach(g=>{h+=`<h4>${g}</h4><table class="t"><tr><th title="Comprado">✓</th><th>Descripción</th><th>Cant.</th><th>Precio unit.</th><th>Subtotal</th></tr>`+rows.filter(r=>r.g===g).map(r=>`<tr style="${r.bought?'background:#f1f8e9':''}"><td><input type="checkbox" data-bk="${esc(r.k)}" ${r.bought?'checked':''} style="width:auto"></td><td>${esc(r.k)}${r.bought?`<br><small>Pagado: <input data-rk="${esc(r.k)}" type="number" value="${r.real!=null?r.real:''}" placeholder="${Math.round(r.sub)}" style="width:80px"> ${r.date||''}</small>`:''}</td><td class="n">${r.qty} ${r.u}</td><td><input data-pk="${esc(r.k)}" type="number" value="${r.price}" style="width:72px"></td><td class="n">${$$(r.sub)}</td></tr>`).join('')+`</table>`});
+ h+=`<h4>Totales</h4><table class="t"><tr><td>Materiales</td><td class="n">${$$(T.mat)}</td></tr><tr><td>Misceláneos (cinta, conectores, amarres) <input id="bMisc" type="number" value="${T.misc}" style="width:44px"> %</td><td class="n">${$$(T.mis)}</td></tr>
+  <tr><td><label><input id="bIva" type="checkbox" ${T.iva?'checked':''} style="width:auto"> IVA 19 % sobre materiales</label></td><td class="n">${$$(T.ivaV)}</td></tr><tr><td>Mano de obra</td><td class="n">${$$(T.mo)}</td></tr>
+  <tr><th>TOTAL</th><th class="n" style="font-size:15px">${$$(T.total)}</th></tr><tr><td>Ya comprado / pagado</td><td class="n" style="color:#2e7d32">${$$(T.paid)}</td></tr><tr><td>Pendiente</td><td class="n" style="color:#c62828">${$$(Math.max(0,T.total-T.paid))}</td></tr></table>
+  <div class="btnrow"><button class="btn pri" id="bPrint">🖨 Imprimir cotización</button><button class="btn" id="bCsv">📊 Excel (CSV)</button><button class="btn" id="bReset">Restablecer precios de ejemplo</button></div>`;
+ B.innerHTML=h;
+ const BG=()=>{state.budget=state.budget||{};state.budget.items=state.budget.items||{};return state.budget};
+ B.querySelectorAll('[data-pk]').forEach(el=>el.onchange=()=>{setPrice(el.dataset.pk,+el.value||0);renderSide()});
+ B.querySelectorAll('[data-bk]').forEach(el=>el.onchange=()=>{const b=BG(),it=b.items[el.dataset.bk]=b.items[el.dataset.bk]||{};it.bought=el.checked;it.date=el.checked?new Date().toLocaleDateString('es-CO'):'';saveLocal();renderSide()});
+ B.querySelectorAll('[data-rk]').forEach(el=>el.onchange=()=>{const b=BG(),it=b.items[el.dataset.rk]=b.items[el.dataset.rk]||{};it.real=el.value===''?null:+el.value;saveLocal();renderSide()});
+ $('#bMisc').onchange=e=>{BG().misc=+e.target.value||0;saveLocal();renderSide()}; $('#bIva').onchange=e=>{BG().iva=e.target.checked;saveLocal();renderSide()};
+ $('#bReset').onclick=()=>{if(confirm('¿Volver a los precios de ejemplo? Se borran los precios que usted escribió.')){localStorage.removeItem(PRICE_KEY);renderSide()}};
+ $('#bCsv').onclick=()=>{const L=['Grupo;Descripción;Cantidad;Unidad;Precio unitario;Subtotal;Comprado;Pagado;Fecha'];rows.forEach(r=>L.push([r.g,r.k,r.qty,r.u,r.price,Math.round(r.sub),r.bought?'sí':'',r.real??'',r.date||''].join(';')));
+  L.push(`;Materiales;;;;${Math.round(T.mat)}`,`;Misceláneos ${T.misc}%;;;;${Math.round(T.mis)}`,`;IVA;;;;${Math.round(T.ivaV)}`,`;Mano de obra;;;;${Math.round(T.mo)}`,`;TOTAL;;;;${Math.round(T.total)}`);
+  download(new Blob(['\ufeff'+L.join('\r\n')],{type:'text/csv'}),(state.name||'proyecto')+' - presupuesto.csv')};
+ $('#bPrint').onclick=printBudget;
+}
+function printBudget(){
+ const rows=budgetRows(),T=budgetTotals(rows),INF=state.info||{},today=new Date().toLocaleDateString('es-CO');
+ $('#print').innerHTML=`<div style="font-family:Segoe UI,Arial;font-size:11px"><div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #12355f;padding-bottom:3mm"><div><h2 style="margin:0">Cotización de instalación eléctrica</h2><div>${esc(state.name)} · ${esc(INF.dir||'')} ${esc(INF.ciu||'')}</div></div><div style="text-align:right">Fecha: ${today}<br>Cliente: ${esc(INF.prop||'')}<br>Elaboró: ${esc(INF.dis||'')} ${INF.mat?'· Mat. '+esc(INF.mat):''}</div></div>
+ <table class="t" style="margin-top:3mm"><tr><th>Descripción</th><th>Cant.</th><th>Unidad</th><th>Valor unit.</th><th>Valor total</th></tr>${[...new Set(rows.map(r=>r.g))].map(g=>`<tr><th colspan="5" style="text-align:left;background:#eef3f8">${g}</th></tr>`+rows.filter(r=>r.g===g).map(r=>`<tr><td>${esc(r.k)}</td><td style="text-align:right">${r.qty}</td><td>${r.u}</td><td style="text-align:right">${$$(r.price)}</td><td style="text-align:right">${$$(r.sub)}</td></tr>`).join('')).join('')}</table>
+ <table class="t" style="width:45%;margin:3mm 0 0 auto"><tr><td>Materiales</td><td style="text-align:right">${$$(T.mat)}</td></tr><tr><td>Misceláneos ${T.misc} %</td><td style="text-align:right">${$$(T.mis)}</td></tr><tr><td>IVA 19 %</td><td style="text-align:right">${$$(T.ivaV)}</td></tr><tr><td>Mano de obra</td><td style="text-align:right">${$$(T.mo)}</td></tr><tr><th>TOTAL</th><th style="text-align:right">${$$(T.total)}</th></tr></table>
+ <p style="font-size:9px;color:#555">Cantidades calculadas a partir del diseño (incluye bajantes y 10 % de desperdicio en cable y tubería). Valores de referencia sujetos a verificación con el proveedor. Validez de la oferta: 30 días.</p></div>`;
+ setTimeout(()=>window.print(),80);
+}
 function sideMat(B){
  const M=materials(); const tb=(t,o,u='')=>`<h4>${t}</h4><table class="t"><tr><th>Descripción</th><th>Cant.</th></tr>${Object.entries(o).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="n">${v}${u}</td></tr>`).join('')||'<tr><td colspan="2">—</td></tr>'}</table>`;
  B.innerHTML=`<h3>📦 Lista de materiales</h3>`+tb('Aparatos',M.dev)+tb('Cajas',M.boxes)+tb('Protecciones (breakers)',M.brk)+tb('Cable (incluye bajantes y 10 % de desperdicio)',M.cab,' m')+tb('Tubería (conduit PVC) – calculada según los cables',M.tub)+`<div class="note">Diámetro según la ocupación máxima de la NTC 2050 (Cap. 9): 40 % con 3 o más conductores. Active <b>tubería</b> en la barra inferior para verla en el plano con su diámetro y número de cables.</div>`+
@@ -1993,7 +2127,7 @@ async function saveFile(as){
 }
 $('#fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const s=JSON.parse(r.result);if(!s.devices)throw 0;saveLocal();state=s;state.pid=uid();fixState();resetSession();settings.ptab=undefined;buildPalette();changed();fitView();toast('Proyecto abierto ✔ (quedó también en 📂 Mis proyectos)')}catch(err){toast('El archivo no es un proyecto válido.',true)}};r.readAsText(f);e.target.value=''};
 $('#imgIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{
- const wm=parseFloat((prompt('¿Cuál es el ANCHO real que representa la imagen, en metros?','12')||'12').replace(',','.'))||12;
+ const wm=parseFloat((prompt('¿Cuál es el ANCHO aproximado que representa la imagen, en metros? (Después podrá calibrarla exacto con 2 puntos.)','12')||'12').replace(',','.'))||12;
  upd(()=>state.bg={src:r.result,x:0,y:0,w:wm*100,h:wm*100*img.height/img.width,op:.5});fitView()};img.src=r.result};r.readAsDataURL(f);e.target.value=''};
 function bounds(){
  let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9; const add=(x,y,m=0)=>{x1=Math.min(x1,x-m);y1=Math.min(y1,y-m);x2=Math.max(x2,x+m);y2=Math.max(y2,y+m)};
@@ -2050,8 +2184,28 @@ function openLib(){
  $('#lbFile').onclick=()=>{$('#modal').classList.remove('show');$('#fileIn').click()};
  document.querySelectorAll('[data-lo]').forEach(b=>b.onclick=()=>{$('#modal').classList.remove('show');openProject(b.dataset.lo)});
  document.querySelectorAll('[data-ld]').forEach(b=>b.onclick=()=>{const raw=localStorage.getItem(PKEY(b.dataset.ld));if(!raw)return;const st=JSON.parse(raw);st.pid=uid();st.name=st.name+' (copia)';try{localStorage.setItem(PKEY(st.pid),JSON.stringify(st));libPut({id:st.pid,name:st.name,t:Date.now(),rooms:st.rooms.length,devs:st.devices.length})}catch(e){toast('No hay espacio para duplicar.',true)}openLib()});
- document.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{const x=ix.find(y=>y.id===b.dataset.lx);if(!confirm(`¿Eliminar el proyecto «${x.name}»? No se puede deshacer.`))return;localStorage.removeItem(PKEY(x.id));localStorage.setItem(LIBK,JSON.stringify(libIndex().filter(y=>y.id!==x.id)));
+ document.querySelectorAll('[data-lx]').forEach(b=>b.onclick=()=>{const x=ix.find(y=>y.id===b.dataset.lx);if(!confirm(`¿Eliminar el proyecto «${x.name}»? No se puede deshacer.`))return;localStorage.removeItem(PKEY(x.id));Object.keys(localStorage).filter(k=>k.startsWith('disenoElectrico.snap.'+x.id+'.')).forEach(k=>localStorage.removeItem(k));localStorage.setItem(LIBK,JSON.stringify(libIndex().filter(y=>y.id!==x.id)));
   if(x.id===state.pid){const other=libIndex().sort((a,b)=>b.t-a.t)[0];if(other){openProject(other.id)}else{state=newState();state.pid=uid();resetSession();changed()}}openLib()});
+}
+// ---------- actualizaciones ----------
+const REL_API='https://api.github.com/repos/soydarwinruiz/diseno-electrico/releases', REL_PAGE='https://github.com/soydarwinruiz/diseno-electrico/releases';
+const QS=new URLSearchParams(location.search), FROM_EXE=QS.get('exe')==='1';
+function verNewer(a,b){const A=a.replace(/^v/,'').split('.').map(Number),B=b.replace(/^v/,'').split('.').map(Number);for(let i=0;i<3;i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0)}return false}
+const mdLite=t=>esc(t||'').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split(/\r?\n/).map(l=>/^\s*[-*] /.test(l)?'<li>'+l.replace(/^\s*[-*] /,'')+'</li>':(l.trim()?'<p>'+l+'</p>':'')).join('').replace(/(<li>.*?<\/li>)+/g,m=>'<ul>'+m+'</ul>');
+function showNotes(rel){$('#modalBox').classList.remove('learn');$('#modalBox').style.maxWidth='720px';$('#modalBox').innerHTML=`<h2>🎉 ${esc(rel.name||rel.tag_name)}</h2>${mdLite(rel.body)}<div class="btnrow">${rel.zip&&!FROM_EXE?`<a class="btn pri" href="${rel.zip}" target="_blank" style="text-decoration:none">⬇ Descargar</a>`:''}<a class="btn" href="${REL_PAGE}" target="_blank" style="text-decoration:none">Ver todas las versiones</a><button class="btn" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;$('#modal').classList.add('show')}
+async function fetchRel(path){const r=await fetch(REL_API+path,{headers:{Accept:'application/vnd.github+json'}});if(!r.ok)throw new Error(r.status);const j=await r.json();const a=(j.assets||[]).find(x=>/-Windows\.zip$/.test(x.name));j.zip=a&&a.browser_download_url;return j}
+async function checkUpdate(manual){
+ let off=false;try{off=localStorage.getItem('disenoElectrico.noUpd')==='1'}catch(e){}
+ if(!manual&&(off||navigator.onLine===false))return;
+ try{const rel=await fetchRel('/latest'),v=rel.tag_name.replace(/^v/,'');
+  if(!verNewer(v,APP_VERSION)){if(manual)toast(`Ya tiene la última versión (v${APP_VERSION}).`);return}
+  let skip='';try{skip=localStorage.getItem('disenoElectrico.skip')}catch(e){} if(!manual&&skip===v)return;
+  const bar=$('#updBar'); bar.style.display='block';
+  bar.innerHTML=`<div style="display:flex;justify-content:space-between"><b>🎉 Versión nueva v${esc(v)} disponible</b><button class="btn" id="ubX" style="padding:0 7px">✕</button></div><div style="margin:4px 0 8px">${esc((rel.name||'').replace(/^v[0-9.]+ — /,''))}</div>
+   <div style="color:#555;margin-bottom:8px">${FROM_EXE?'El programa la está descargando solo: <b>cierre y vuelva a abrirlo</b> para usarla. Sus proyectos se conservan.':'Descargue el ZIP, reemplace la carpeta del programa y ábralo de nuevo. Sus proyectos se conservan.'}</div>
+   <div class="btnrow" style="margin:0"><button class="btn" id="ubN">Ver novedades</button>${!FROM_EXE&&rel.zip?`<a class="btn pri" href="${rel.zip}" target="_blank" style="text-decoration:none">⬇ Descargar</a>`:''}<button class="btn" id="ubL">Más tarde</button></div>`;
+  $('#ubN').onclick=()=>showNotes(rel); $('#ubX').onclick=$('#ubL').onclick=()=>{bar.style.display='none';try{localStorage.setItem('disenoElectrico.skip',v)}catch(e){}};
+ }catch(e){if(manual)toast('No se pudo consultar las actualizaciones (¿sin conexión a internet?).',true)}
 }
 function shortcuts(){
  $('#modalBox').classList.remove('learn'); $('#modalBox').style.maxWidth='';
@@ -2095,6 +2249,7 @@ function openUnifilar(){
 }
 function help(){
  $('#modalBox').style.maxWidth='';
+ setTimeout(()=>{if($('#hUpd')){$('#hUpd').onclick=()=>checkUpdate(true);$('#hUpdAuto').onchange=e=>{try{localStorage.setItem('disenoElectrico.noUpd',e.target.checked?'0':'1')}catch(x){}}}},0);
  $('#modalBox').classList.remove('learn');
  $('#modalBox').innerHTML=`<h2>Guía rápida</h2>
  <ol>
@@ -2117,7 +2272,7 @@ function help(){
  <b>Desde 2 sitios (conmutables):</b> fase → COM del 1.º; V1 y V2 del 1.º → V1 y V2 del 2.º (viajeros); COM del 2.º → bombillo; neutro → bombillo.<br>
  <b>Desde 3 o más sitios:</b> igual, pero los viajeros pasan por cada interruptor de cruce (A1/A2 entran, B1/B2 salen).</p>
  <p style="font-size:12px;color:#555">Herramienta de apoyo para diseño y aprendizaje. No reemplaza el criterio ni la firma de un profesional competente. Verifique siempre contra el RETIE y la NTC 2050 vigentes.</p>
- <p style="font-size:12px;color:#555">Versión ${APP_VERSION} · <a href="https://github.com/soydarwinruiz/diseno-electrico/releases" target="_blank">ver novedades y descargas</a></p>
+ <p style="font-size:12px;color:#555">Versión ${APP_VERSION} · <a href="https://github.com/soydarwinruiz/diseno-electrico/releases" target="_blank">ver novedades y descargas</a> · <button class="btn" id="hUpd" style="padding:2px 8px">🔄 Buscar actualizaciones</button> <label><input type="checkbox" id="hUpdAuto" style="width:auto" ${(()=>{try{return localStorage.getItem('disenoElectrico.noUpd')==='1'?'':'checked'}catch(e){return 'checked'}})()}> buscar al abrir el programa</label></p>
  <div class="btnrow"><button class="btn pri" onclick="$('#modal').classList.remove('show')">Cerrar</button></div>`;
  $('#modal').classList.add('show');
 }
@@ -2379,11 +2534,16 @@ function renderLearn(){
 const TEMPLATES={
  estudio:{n:'Apartaestudio',d:'≈ 35 m² · un ambiente, cocina, baño',rooms:[['Sala-alcoba','sala',0,0,600,450],['Cocina','cocina',600,0,300,250],['Baño','bano',600,250,300,200]],
   open:[['puerta',300,450,90,0,-1],['puerta',600,120,80,1,0],['puerta',600,350,70,1,0],['ventana',300,0,200,0,1],['ventana',750,0,100,0,1],['ventana',0,220,150,1,0],['ventana',900,350,60,-1,0]]},
+ casa1:{n:'Apartamento 1 alcoba',d:'≈ 52 m² · sala, cocina, baño, estudio',rooms:[['Sala-comedor','sala',0,0,450,380],['Cocina','cocina',450,0,280,220],['Baño','bano',450,220,280,160],['Alcoba','alcoba',0,380,450,330],['Estudio','estudio',450,380,280,330]],
+  open:[['puerta',225,0,90,0,1],['puerta',450,110,80,1,0],['puerta',450,300,70,1,0],['puerta',225,380,80,0,1],['puerta',450,545,80,1,0],['ventana',0,190,150,1,0],['ventana',590,0,100,0,1],['ventana',730,300,60,-1,0],['ventana',225,710,150,0,-1],['ventana',590,710,120,0,-1]]},
  casa2:{n:'Casa 2 alcobas',d:'≈ 75 m² · sala, cocina, ropas, baño',K:1.3,rooms:[['Sala-comedor','sala',0,0,500,400],['Cocina','cocina',500,0,300,250],['Patio de ropas','lavadero',800,0,200,250],['Pasillo','pasillo',500,250,500,150],['Alcoba principal','alcoba',0,400,400,400],['Baño','bano',400,400,200,400],['Alcoba 2','alcoba',600,400,400,400]],
   open:[['puerta',250,0,100,0,1],['puerta',200,400,80,0,1],['puerta',500,400,70,0,1],['puerta',800,400,80,0,1],['puerta',650,250,80,0,-1],['puerta',900,250,80,0,-1],['ventana',0,200,150,1,0],['ventana',200,800,150,0,-1],['ventana',800,800,150,0,-1],['ventana',1000,120,100,-1,0],['ventana',500,800,60,0,-1]]},
  casa3:{n:'Casa 3 alcobas',d:'≈ 115 m² · sala, comedor, ropas',rooms:[['Sala','sala',0,0,500,450],['Comedor','comedor',500,0,350,300],['Cocina','cocina',850,0,300,300],['Patio de ropas','lavadero',1150,0,200,300],['Pasillo','pasillo',500,300,850,150],['Alcoba principal','alcoba',0,450,450,400],['Baño','bano',450,450,250,400],['Alcoba 2','alcoba',700,450,350,400],['Alcoba 3','alcoba',1050,450,300,400]],
   open:[['puerta_doble',250,0,140,0,1],['puerta',500,375,90,1,0],['puerta',675,300,90,0,-1],['puerta',1000,300,80,0,-1],['puerta',1150,150,80,1,0],['puerta',225,450,80,0,1],['puerta',575,450,70,0,1],['puerta',875,450,80,0,1],['puerta',1200,450,80,0,1],
-   ['ventana',0,225,150,1,0],['ventana',225,850,150,0,-1],['ventana',575,850,60,0,-1],['ventana',875,850,150,0,-1],['ventana',1200,850,150,0,-1],['ventana',1350,150,100,-1,0],['ventana',1000,0,120,0,1],['ventana',675,0,150,0,1]]}
+   ['ventana',0,225,150,1,0],['ventana',225,850,150,0,-1],['ventana',575,850,60,0,-1],['ventana',875,850,150,0,-1],['ventana',1200,850,150,0,-1],['ventana',1350,150,100,-1,0],['ventana',1000,0,120,0,1],['ventana',675,0,150,0,1]]},
+ casa4:{n:'Casa 4 alcobas',d:'≈ 150 m² · 2 baños, comedor, ropas',rooms:[['Sala','sala',0,0,550,450],['Comedor','comedor',550,0,350,300],['Cocina','cocina',900,0,300,300],['Patio de ropas','lavadero',1200,0,200,300],['Pasillo','pasillo',550,300,850,150],['Alcoba 4','alcoba',1400,0,350,450],['Alcoba principal','alcoba',0,450,450,400],['Baño 1','bano',450,450,200,400],['Alcoba 2','alcoba',650,450,350,400],['Baño 2','bano',1000,450,200,400],['Alcoba 3','alcoba',1200,450,550,400]],
+  open:[['puerta_doble',275,0,140,0,1],['puerta',550,375,90,1,0],['puerta',725,300,90,0,-1],['puerta',1050,300,80,0,-1],['puerta',1200,150,80,1,0],['puerta',1400,375,80,1,0],['puerta',225,450,80,0,1],['puerta',550,450,70,0,1],['puerta',825,450,80,0,1],['puerta',1100,450,70,0,1],['puerta',1300,450,80,0,1],
+   ['ventana',0,225,150,1,0],['ventana',225,850,150,0,-1],['ventana',550,850,60,0,-1],['ventana',825,850,150,0,-1],['ventana',1100,850,60,0,-1],['ventana',1475,850,180,0,-1],['ventana',1750,225,150,-1,0],['ventana',1050,0,120,0,1],['ventana',725,0,150,0,1],['ventana',1300,0,80,0,1]]}
 };
 function tplThumb(t){const xs=t.rooms.flatMap(r=>[r[2],r[2]+r[4]]),ys=t.rooms.flatMap(r=>[r[3],r[3]+r[5]]),M=Math.max(...xs,...ys);
  return `<svg width="40" height="40" viewBox="-20 -20 ${M+40} ${M+40}">${t.rooms.map(r=>`<rect x="${r[2]}" y="${r[3]}" width="${r[4]}" height="${r[5]}" fill="${ROOMC[r[1]]}" stroke="#37424d" stroke-width="14"/>`).join('')}</svg>`}
@@ -2811,6 +2971,8 @@ $('#appVer').textContent='v'+APP_VERSION;
 buildPalette();
 setMode('select');
 requestAnimationFrame(()=>{fitView(); if(!had) setTimeout(help,300)});
+if(QS.get('actualizado')) setTimeout(()=>{toast(`✔ Programa actualizado a la versión ${QS.get('actualizado')}.`);fetchRel('/tags/v'+QS.get('actualizado')).then(showNotes).catch(()=>{})},800);
+setTimeout(()=>checkUpdate(false),2500);
 </script>
 </body>
 </html>
