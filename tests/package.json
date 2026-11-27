@@ -1,0 +1,7 @@
+{
+  "name": "diseno-electrico-pruebas",
+  "private": true,
+  "description": "Pruebas automáticas del Diseño Eléctrico (se ejecutan en GitHub antes de publicar cada versión).",
+  "scripts": { "test": "node pruebas.js" },
+  "devDependencies": { "playwright": "1.63.0" }
+}

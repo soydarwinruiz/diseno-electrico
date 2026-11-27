@@ -2,6 +2,17 @@
 
 Todas las versiones se pueden descargar en la sección **Releases** del repositorio.
 
+## v2.1.0 — Solidez: seguridad, respaldos y pruebas automáticas
+- **Archivos seguros**: todo proyecto que se abre (archivo, Mis proyectos o versión guardada) se revisa antes de usarlo. Un archivo preparado con código malicioso ya no puede ejecutar nada, y un archivo dañado o incompleto no se abre y **deja intacto el proyecto actual**, con un mensaje claro de qué falló.
+- **Imagen de fondo liviana**: se reduce sola a máximo 2000 px y se guarda aparte del proyecto, así una foto grande ya no llena el almacenamiento ni impide guardar. Los proyectos antiguos con imagen se convierten solos.
+- **🛟 Respaldo completo**: en 📂 Mis proyectos, «Respaldar todo» descarga un solo archivo con todos los proyectos, sus versiones, imágenes y precios; «Restaurar respaldo» los recupera (también en otro computador). Opción de **copia diaria automática a una carpeta** y recordatorio si pasa más de una semana sin respaldo.
+- **Actualizaciones verificadas**: el `.exe` comprueba la huella SHA-256 de la versión nueva, que esté completa y que venga de GitHub antes de usarla.
+- **GFCI que se dispara**: en la simulación, el botón **TEST** del tomacorriente GFCI lo dispara (luz roja, sin energía) y **RESET** lo restablece; el diagnóstico lo detecta. Con **taco diferencial**, una falla a tierra la corta el diferencial, con su explicación.
+- El diseño automático de toda la casa agrega y conecta la **varilla de puesta a tierra** si falta.
+- **Recorrido de bienvenida** de 8 pasos la primera vez (y en Ayuda → «Recorrido rápido»). La Ayuda explica la vista 3D, el GFCI y los respaldos.
+- La barra de herramientas ya **no se parte en dos líneas** en portátiles (1280–1366 px): los botones muestran solo el ícono y el nombre aparece al pasar el ratón. Se unificó el término **taco** (antes se mezclaba con «breaker»).
+- **20 pruebas automáticas** en el repositorio (`tests/`) y pruebas del actualizador; GitHub las ejecuta en Linux y prueba el `.exe` en una máquina **Windows real** antes de publicar cada versión. Si algo falla, la versión no se publica.
+
 ## v2.0.0 — Vista 3D y recorrido caminando
 - **🧊 Vista 3D** (botón 3D o tecla 3): la casa en 3D con muros, vanos de puertas y ventanas, pisos por espacio, muebles y cada aparato eléctrico a su altura real (tomas a 0,30 m, interruptores a 1,20 m, luces en el techo, tablero a 1,45 m).
 - **Luces reales**: las luces encendidas en la simulación iluminan la casa; modo **🌙 Noche** para verlas mejor. Los ventiladores y extractores giran.

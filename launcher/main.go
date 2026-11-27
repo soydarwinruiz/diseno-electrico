@@ -10,7 +10,9 @@ package main
 import (
 	"archive/zip"
 	"bytes"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -120,6 +122,56 @@ type release struct {
 	} `json:"assets"`
 }
 
+// allowedURL limita las descargas a GitHub (o al servidor de prueba indicado en DE_UPDATE_URL).
+func allowedURL(u string) bool {
+	p, err := url.Parse(u)
+	if err != nil {
+		return false
+	}
+	if t := os.Getenv("DE_UPDATE_URL"); t != "" {
+		if q, e := url.Parse(t); e == nil && q.Host == p.Host {
+			return true
+		}
+	}
+	return p.Scheme == "https" && (p.Host == "github.com" || strings.HasSuffix(p.Host, ".githubusercontent.com"))
+}
+
+func download(client *http.Client, u string, max int64) ([]byte, error) {
+	if !allowedURL(u) {
+		return nil, errors.New("dirección de descarga no permitida: " + u)
+	}
+	r, err := client.Get(u)
+	if err != nil {
+		return nil, err
+	}
+	defer r.Body.Close()
+	if r.StatusCode != 200 {
+		return nil, errors.New("descarga " + r.Status)
+	}
+	return io.ReadAll(io.LimitReader(r.Body, max))
+}
+
+// verify comprueba que el programa descargado esté completo y coincida con la huella SHA-256 publicada.
+func verify(html []byte, tag, sum string) error {
+	if versionOf(html) != tag {
+		return errors.New("la versión del archivo no coincide")
+	}
+	if !bytes.Contains(html, []byte("</html>")) {
+		return errors.New("el archivo descargado está incompleto")
+	}
+	if sum == "" {
+		if !newer("2.1.0", tag) {
+			return errors.New("la versión no publica su huella SHA-256")
+		}
+		return nil
+	}
+	h := sha256.Sum256(html)
+	if !strings.EqualFold(hex.EncodeToString(h[:]), sum) {
+		return errors.New("la huella SHA-256 no coincide: descarga dañada o alterada")
+	}
+	return nil
+}
+
 // update descarga la versión nueva si existe y la deja en dir. Devuelve la versión instalada o "".
 func update(dir, active string) (string, error) {
 	if _, err := os.Stat(filepath.Join(dir, "no-actualizar.txt")); err == nil {
@@ -149,22 +201,32 @@ func update(dir, active string) (string, error) {
 	if !newer(tag, active) {
 		return "", nil
 	}
-	zipURL := ""
+	zipURL, sumURL := "", ""
 	for _, a := range rel.Assets {
 		if strings.HasSuffix(a.Name, "-Windows.zip") {
 			zipURL = a.URL
+		}
+		if strings.HasSuffix(a.Name, ".sha256") {
+			sumURL = a.URL
 		}
 	}
 	if zipURL == "" {
 		return "", errors.New("la release no tiene ZIP")
 	}
 	client.Timeout = 120 * time.Second
-	zr, err := client.Get(zipURL)
-	if err != nil {
-		return "", err
+	sum := ""
+	if sumURL != "" {
+		b, err := download(client, sumURL, 4096)
+		if err != nil {
+			return "", err
+		}
+		f := strings.Fields(string(b))
+		if len(f) == 0 || len(f[0]) != 64 {
+			return "", errors.New("archivo de huella inválido")
+		}
+		sum = f[0]
 	}
-	defer zr.Body.Close()
-	data, err := io.ReadAll(io.LimitReader(zr.Body, 64<<20))
+	data, err := download(client, zipURL, 64<<20)
 	if err != nil {
 		return "", err
 	}
@@ -183,8 +245,8 @@ func update(dir, active string) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			if versionOf(html) != tag {
-				return "", errors.New("la versión del archivo no coincide")
+			if err := verify(html, tag, sum); err != nil {
+				return "", err
 			}
 			tmp := filepath.Join(dir, "DisenoElectrico.html.nuevo")
 			if err := os.WriteFile(tmp, html, 0o644); err != nil {

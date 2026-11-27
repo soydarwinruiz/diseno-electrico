@@ -1,3 +1,6 @@
 launcher/DisenoElectrico.html
 dist/DisenoElectrico.exe
 *.syso
+dist/DisenoElectrico.html.sha256
+tests/node_modules/
+tests/package-lock.json

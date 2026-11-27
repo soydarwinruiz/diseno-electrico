@@ -1,0 +1,35 @@
+DISEÑO ELÉCTRICO RESIDENCIAL v@VERSION@ (RETIE / NTC 2050) - Windows 10/11
+================================================================
+
+CÓMO ABRIRLO
+1. Descomprima esta carpeta (por ejemplo en Documentos).
+2. Doble clic en DisenoElectrico.exe
+   Se abre en una ventana propia (usa Microsoft Edge, que ya viene con Windows).
+   Si Windows muestra "Windows protegió su PC": clic en "Más información" > "Ejecutar de todas formas"
+   (aparece porque el programa no tiene firma digital comercial).
+   Alternativa: doble clic en DisenoElectrico.html (se abre en el navegador).
+3. Para un acceso directo: clic derecho en el .exe > Enviar a > Escritorio.
+
+No necesita internet ni instalación.
+
+GUARDAR EL TRABAJO
+- Cada proyecto se guarda solo en el equipo (botón «Mis proyectos»).
+- Use "Guardar" para crear un archivo .elec.json (para llevarlo a otro PC).
+- Mis proyectos > «Respaldar todo» guarda TODOS los proyectos en un solo archivo.
+  Hágalo de vez en cuando: los proyectos viven en el navegador y se pierden si se
+  borran los datos de navegación. «Restaurar respaldo» los recupera.
+- "Imprimir / PDF" genera el plano, el cuadro de cargas, los materiales y las observaciones.
+
+VISTA 3D
+- Botón «3D» (o tecla 3): ver la casa en 3D y recorrerla caminando. Requiere un equipo con
+  gráficos que soporten WebGL (casi todos los computadores con Windows 10/11).
+
+ACTUALIZACIONES
+- Al abrir con DisenoElectrico.exe, el programa busca solo la versión nueva en internet,
+  la descarga en segundo plano, comprueba su huella SHA-256 y la usa la próxima vez que se
+  abra. Sus proyectos se conservan.
+- Para desactivarlo, cree un archivo llamado no-actualizar.txt en %LOCALAPPDATA%\DisenoElectrico
+
+AVISO
+Herramienta de apoyo para diseño y aprendizaje. El diseño definitivo debe ser revisado y
+firmado por un profesional competente con matrícula, según el RETIE y la NTC 2050 vigentes.

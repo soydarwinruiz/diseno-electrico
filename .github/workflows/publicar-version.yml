@@ -1,22 +1,84 @@
-# Publica automáticamente una Release en GitHub cuando cambia la versión del programa.
+# Pruebas automáticas + publicación de versiones.
+# 1) «pruebas»: prueba el programa en Chromium (tests/pruebas.js) y el actualizador (go test).
+# 2) «windows»: compila el .exe en una máquina Windows real y comprueba que arranca y prepara el programa.
+# 3) «publicar»: solo si las dos anteriores pasan, crea la Release con el ZIP y la huella SHA-256.
 # La versión se lee de APP_VERSION en app/DisenoElectrico.html y las notas de CHANGELOG.md.
 name: Publicar versión
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Pruebas del actualizador (Go)
+        run: |
+          cp app/DisenoElectrico.html launcher/
+          cd launcher && go vet ./... && go test -v ./...
+      - name: Pruebas del programa (Chromium)
+        working-directory: tests
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npm test
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Pruebas del actualizador en Windows
+        shell: bash
+        run: |
+          cp app/DisenoElectrico.html launcher/
+          cd launcher && go test -v ./...
+      - name: Compilar el .exe
+        shell: bash
+        run: cd launcher && go build -trimpath -ldflags "-H windowsgui -s -w" -o ../DisenoElectrico.exe .
+      - name: El .exe arranca y prepara el programa
+        shell: pwsh
+        run: |
+          $d = Join-Path $env:RUNNER_TEMP 'appdata'
+          New-Item -ItemType Directory -Force $d | Out-Null
+          $env:LOCALAPPDATA = $d
+          $env:DE_NO_LAUNCH = '1'
+          $env:DE_UPDATE_URL = 'http://127.0.0.1:9/latest'
+          $p = Start-Process -FilePath .\DisenoElectrico.exe -PassThru -Wait
+          $dir = Join-Path $d 'DisenoElectrico'
+          Get-ChildItem $dir | Format-Table Name, Length
+          $v = (Select-String -Path app\DisenoElectrico.html -Pattern "const APP_VERSION='([0-9.]+)'").Matches[0].Groups[1].Value
+          if ((Get-Content (Join-Path $dir 'version.txt')).Trim() -ne $v) { throw "version.txt no coincide con $v" }
+          if ((Get-Item (Join-Path $dir 'DisenoElectrico.html')).Length -lt 500000) { throw 'El programa no se escribió completo' }
+          if (-not (Test-Path (Join-Path $dir 'actualizacion-error.txt'))) { throw 'El actualizador no registró el intento sin conexión' }
+          Write-Host "OK: el .exe v$v arranca en Windows"
+
+  publicar:
+    needs: [pruebas, windows]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: Notas de una versión (desde CHANGELOG.md)
         run: |
@@ -40,13 +102,16 @@ jobs:
             gh release create "v$V" --target "$SHA" --title "$(cat titulo.txt)" --notes-file notas.md --latest=false
           done < .github/versiones-anteriores.txt
 
-      - name: Versión actual
+      - name: Versión actual (compilada aquí, ya probada)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           V=$(grep -oP "const APP_VERSION='\K[0-9.]+" app/DisenoElectrico.html)
           echo "Versión del programa: $V"
           if gh release view "v$V" >/dev/null 2>&1; then echo "La release v$V ya existe."; exit 0; fi
+          ./build.sh
           ./notas.sh "$V"
           cp dist/DisenoElectrico-Windows.zip "DisenoElectrico-v$V-Windows.zip"
-          gh release create "v$V" "DisenoElectrico-v$V-Windows.zip" --target "$GITHUB_SHA" --title "$(cat titulo.txt)" --notes-file notas.md --latest
+          cp dist/DisenoElectrico.html.sha256 "DisenoElectrico-v$V.sha256"
+          printf '\n\n---\nHuella SHA-256 de DisenoElectrico.html: `%s`\n' "$(cut -d' ' -f1 dist/DisenoElectrico.html.sha256)" >> notas.md
+          gh release create "v$V" "DisenoElectrico-v$V-Windows.zip" "DisenoElectrico-v$V.sha256" --target "$GITHUB_SHA" --title "$(cat titulo.txt)" --notes-file notas.md --latest

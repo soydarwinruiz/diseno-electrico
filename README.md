@@ -34,6 +34,12 @@ No requiere internet ni instalación.
 
 ![Modelos de tablero](docs/tablero-modelos.png)
 
+### Novedades v2.1 (solidez)
+- Archivos revisados antes de abrirse: un archivo malicioso no ejecuta nada y uno dañado no estropea el proyecto actual.
+- **🛟 Respaldo completo** de todos los proyectos (y copia diaria automática a una carpeta), imagen de fondo liviana guardada aparte.
+- Actualizaciones verificadas con SHA-256; GFCI con TEST/RESET en la simulación; recorrido de bienvenida.
+- Pruebas automáticas en Linux y en Windows antes de cada publicación.
+
 ### 🧊 Vista 3D y recorrido (v2.0)
 - La casa en 3D con muebles y los aparatos eléctricos a su altura real; las luces encendidas en la simulación iluminan la casa.
 - **Caminar** por dentro en primera persona y accionar interruptores con un clic.
@@ -100,7 +106,9 @@ No requiere internet ni instalación.
 | `app/DisenoElectrico.html` | La aplicación completa (HTML + JavaScript, un solo archivo) |
 | `launcher/` | Lanzador en Go que incrusta el HTML y lo abre en una ventana de Edge |
 | `dist/` | ZIP listo para Windows |
-| `build.sh` | Compila `dist/DisenoElectrico.exe` (requiere Go) |
+| `build.sh` | Compila el `.exe`, arma el ZIP y la huella SHA-256 (requiere Go y zip) |
+| `tests/` | Pruebas automáticas del programa (Playwright + Chromium) |
+| `launcher/main_test.go` | Pruebas del actualizador (`go test`) |
 
 ## Aviso
 
@@ -113,8 +121,14 @@ El programa avisa cuando hay una versión nueva; con el `.exe` se actualiza solo
 
 El historial está en [CHANGELOG.md](CHANGELOG.md). Para publicar una versión nueva:
 
-1. Cambie `APP_VERSION` en `app/DisenoElectrico.html` (por ejemplo `1.7.0`).
-2. Agregue la sección `## v1.7.0 — Título` al inicio de `CHANGELOG.md`.
-3. Ejecute `./build.sh`, actualice `dist/DisenoElectrico-Windows.zip` y suba los cambios a `main`.
+1. Cambie `APP_VERSION` en `app/DisenoElectrico.html` (por ejemplo `2.2.0`).
+2. Agregue la sección `## v2.2.0 — Título` al inicio de `CHANGELOG.md`.
+3. Ejecute `./build.sh` y suba los cambios a `main`.
 
-La acción de GitHub *Publicar versión* (`.github/workflows/publicar-version.yml`) crea sola la etiqueta `v1.7.0` y la **Release** con sus notas y el ZIP para descargar.
+La acción de GitHub *Publicar versión* (`.github/workflows/publicar-version.yml`) primero corre las pruebas (Chromium en Linux, el actualizador y el `.exe` en Windows). Solo si todas pasan, compila el ZIP, crea la etiqueta `v2.2.0` y la **Release** con sus notas, el ZIP y la huella SHA-256 que comprueba la actualización automática.
+
+Para correr las pruebas en su equipo:
+
+```bash
+cd tests && npm install && npx playwright install chromium && npm test
+```
